@@ -1,0 +1,9 @@
+{
+  "eventName": "Infinity",
+  "cameraTime": 15,
+  "welcomeTime": 2,
+  "goodbyeTime": 2,
+  "showAnimations": true,
+  "theme": "dark",
+  "autoMode": true
+}
