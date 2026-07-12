@@ -33,28 +33,31 @@ app.get("/admin", (req, res) => {
 // SOCKET.IO
 // ----------------------
 io.on("connection", (socket) => {
-    console.log("Nouvelle connexion :", socket.id);
+    console.log("✅ Nouvelle connexion :", socket.id);
+    // Envoie la file actuelle au nouveau client
+    socket.emit("queueUpdated", queue);
     socket.on("joinQueue", (name) => {
+        console.log("📥 joinQueue reçu :", name);
         queue.push({
             id: socket.id,
             name: name,
         });
-        console.log("Nouvel arrivant :", name);
-        // Envoi de la file à tous les admins
+        console.log("📋 File actuelle :", queue);
         io.emit("queueUpdated", queue);
     });
     socket.on("disconnect", () => {
+        console.log("❌ Déconnexion :", socket.id);
         const index = queue.findIndex((user) => user.id === socket.id);
         if (index !== -1) {
             queue.splice(index, 1);
+            console.log("📋 Nouvelle file :", queue);
             io.emit("queueUpdated", queue);
         }
-        console.log("Déconnexion :", socket.id);
     });
 });
 // ----------------------
 // START
 // ----------------------
 httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`InfinityLive serveur démarré sur le port ${PORT}`);
+    console.log(`🚀 InfinityLive serveur démarré sur le port ${PORT}`);
 });

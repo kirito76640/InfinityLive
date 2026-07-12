@@ -48,10 +48,17 @@ app.get("/admin", (req, res) => {
 
 io.on("connection", (socket) => {
 
-  console.log("Nouvelle connexion :", socket.id);
+  console.log("✅ Nouvelle connexion :", socket.id);
+
+
+  // Envoie la file actuelle au nouveau client
+  socket.emit("queueUpdated", queue);
 
 
   socket.on("joinQueue", (name: string) => {
+
+    console.log("📥 joinQueue reçu :", name);
+
 
     queue.push({
       id: socket.id,
@@ -59,10 +66,9 @@ io.on("connection", (socket) => {
     });
 
 
-    console.log("Nouvel arrivant :", name);
+    console.log("📋 File actuelle :", queue);
 
 
-    // Envoi de la file à tous les admins
     io.emit("queueUpdated", queue);
 
   });
@@ -70,6 +76,9 @@ io.on("connection", (socket) => {
 
 
   socket.on("disconnect", () => {
+
+
+    console.log("❌ Déconnexion :", socket.id);
 
 
     const index = queue.findIndex(
@@ -81,12 +90,11 @@ io.on("connection", (socket) => {
 
       queue.splice(index, 1);
 
+      console.log("📋 Nouvelle file :", queue);
+
       io.emit("queueUpdated", queue);
 
     }
-
-
-    console.log("Déconnexion :", socket.id);
 
   });
 
@@ -101,7 +109,7 @@ io.on("connection", (socket) => {
 httpServer.listen(PORT, "0.0.0.0", () => {
 
   console.log(
-    `InfinityLive serveur démarré sur le port ${PORT}`
+    `🚀 InfinityLive serveur démarré sur le port ${PORT}`
   );
 
 });

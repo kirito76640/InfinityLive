@@ -53,6 +53,7 @@
 
 <video id="camera" autoplay playsinline></video>
 
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
 
@@ -61,19 +62,19 @@ const nameInput = document.getElementById("name");
 const status = document.getElementById("status");
 const video = document.getElementById("camera");
 
+// Connexion Socket.IO dès le chargement de la page
+const socket = io();
 
 button.onclick = async () => {
 
-    const name = nameInput.value;
+    const name = nameInput.value.trim();
 
     if (!name) {
         alert("Veuillez entrer votre prénom");
         return;
     }
 
-
     status.innerText = "Autorisation caméra en cours...";
-
 
     try {
 
@@ -82,8 +83,10 @@ button.onclick = async () => {
             audio: false
         });
 
-
         video.srcObject = stream;
+
+        // Envoi du prénom au serveur
+        socket.emit("joinQueue", name);
 
         status.innerText =
             "Bienvenue " + name + " ! Vous êtes dans la file d'attente.";
@@ -99,7 +102,6 @@ button.onclick = async () => {
 };
 
 </script>
-
 
 </body>
 </html>
