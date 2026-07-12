@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfinityLive</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 30px;
+        }
+
+        video {
+            width: 90%;
+            max-width: 400px;
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+
+        input {
+            padding: 12px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>InfinityLive</h1>
+
+<p>
+    Entrez votre prénom pour participer :
+</p>
+
+<input id="name" placeholder="Votre prénom">
+
+<br>
+
+<button id="join">
+    Participer
+</button>
+
+<p id="status"></p>
+
+<video id="camera" autoplay playsinline></video>
+
+
+<script>
+
+const button = document.getElementById("join");
+const nameInput = document.getElementById("name");
+const status = document.getElementById("status");
+const video = document.getElementById("camera");
+
+
+button.onclick = async () => {
+
+    const name = nameInput.value;
+
+    if (!name) {
+        alert("Veuillez entrer votre prénom");
+        return;
+    }
+
+
+    status.innerText = "Autorisation caméra en cours...";
+
+
+    try {
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        });
+
+
+        video.srcObject = stream;
+
+        status.innerText =
+            "Bienvenue " + name + " ! Vous êtes dans la file d'attente.";
+
+    } catch (error) {
+
+        status.innerText =
+            "Impossible d'accéder à la caméra.";
+
+        console.error(error);
+    }
+
+};
+
+</script>
+
+
+</body>
+</html>

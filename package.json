@@ -1,0 +1,17 @@
+{
+  "name": "infinitylive",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+
+  "scripts": {
+    "build": "tsc -p server/tsconfig.json",
+    "start": "node server/dist/index.js",
+    "dev": "ts-node-dev server/src/index.ts"
+  },
+
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
