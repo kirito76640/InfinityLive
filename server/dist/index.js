@@ -6,8 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
-app.use(express_1.default.static("public"));
+app.use(express_1.default.static(path_1.default.join(__dirname, "../public")));
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
     cors: {
@@ -16,7 +17,7 @@ const io = new socket_io_1.Server(httpServer, {
 });
 const PORT = Number(process.env.PORT) || 3000;
 app.get("/", (req, res) => {
-    res.send("InfinityLive serveur en ligne !");
+    res.sendFile(path_1.default.join(__dirname, "../public/index.html"));
 });
 io.on("connection", (socket) => {
     console.log("Nouvelle connexion :", socket.id);

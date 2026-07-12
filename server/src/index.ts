@@ -1,10 +1,11 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import path from "path";
 
 const app = express();
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "../public")));
 
 const httpServer = createServer(app);
 
@@ -17,7 +18,7 @@ const io = new Server(httpServer, {
 const PORT: number = Number(process.env.PORT) || 3000;
 
 app.get("/", (req, res) => {
-  res.send("InfinityLive serveur en ligne !");
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 io.on("connection", (socket) => {
