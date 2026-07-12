@@ -107,15 +107,25 @@ socket.on("queueUpdated",(users)=>{
         div.className="user";
 
         div.innerHTML=`
-        <span>${index+1}. ${user.name}</span>
-        <button disabled>En attente</button>
-        `;
+<span>${index+1}. ${user.name}</span>
+${
+    index === 0
+    ? `<button onclick="callUser('${user.id}')">Faire passer</button>`
+    : `<button disabled>En attente</button>`
+}
+`;
 
         queue.appendChild(div);
 
     });
 
 });
+
+function callUser(id){
+
+    socket.emit("callVisitor", id);
+
+}
 
 </script>
 

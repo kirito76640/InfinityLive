@@ -16,26 +16,21 @@ const io = new socket_io_1.Server(httpServer, {
     },
 });
 const PORT = Number(process.env.PORT) || 3000;
-// ----------------------
 // FILE D'ATTENTE
-// ----------------------
 const queue = [];
-// ----------------------
 // PAGES
-// ----------------------
 app.get("/", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public/index.html"));
 });
 app.get("/admin", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public/admin.html"));
 });
-// ----------------------
 // SOCKET.IO
-// ----------------------
 io.on("connection", (socket) => {
     console.log("✅ Nouvelle connexion :", socket.id);
-    // Envoie la file actuelle au nouveau client
+    // Envoie la file actuelle au nouvel utilisateur
     socket.emit("queueUpdated", queue);
+    // Arrivée visiteur
     socket.on("joinQueue", (name) => {
         console.log("📥 joinQueue reçu :", name);
         queue.push({
@@ -45,19 +40,21 @@ io.on("connection", (socket) => {
         console.log("📋 File actuelle :", queue);
         io.emit("queueUpdated", queue);
     });
+    // ADMIN APPELLE UN VISITEUR
+    socket.on("callVisitor", (id) => {
+        console.log("🎬 Visiteur appelé :", id);
+        io.to(id).emit("visitorCalled");
+    });
+    // Déconnexion
     socket.on("disconnect", () => {
         console.log("❌ Déconnexion :", socket.id);
         const index = queue.findIndex((user) => user.id === socket.id);
         if (index !== -1) {
             queue.splice(index, 1);
-            console.log("📋 Nouvelle file :", queue);
             io.emit("queueUpdated", queue);
         }
     });
 });
-// ----------------------
-// START
-// ----------------------
 httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 InfinityLive serveur démarré sur le port ${PORT}`);
 });
