@@ -311,33 +311,27 @@ async(offer)=>{
 
 
     peerConnection.ontrack =
-    event=>{
+event=>{
 
 
-        remoteVideo.srcObject =
-        event.streams[0];
-
-
-
-        remoteVideo.style.display =
-        "block";
+    remoteVideo.srcObject =
+    event.streams[0];
 
 
 
-        // La caméra attend la fin du message bienvenue
-
-        if(welcomeFinished){
-
-
-            message.style.display =
-            "none";
-
-
-        }
+    remoteVideo.style.display =
+    "block";
 
 
 
-    };
+    // On retire le texte dès que la caméra prend l'écran
+
+    message.style.display =
+    "none";
+
+
+
+};
 
 
 
