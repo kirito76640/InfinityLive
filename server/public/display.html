@@ -184,10 +184,19 @@ function showMessage(text,time){
 async function startWelcome(user){
 
 
+    async function startWelcome(user){
+
+
     await showMessage(
         "Infinity te souhaite la bienvenue " + user.name,
-        2000
+        5000
     );
+
+
+    message.style.display="none";
+
+
+}
 
 
     message.style.display="none";
