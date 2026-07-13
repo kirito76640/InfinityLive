@@ -112,8 +112,7 @@ document.getElementById("remoteVideo");
 let peerConnection = null;
 
 
-// Empêche la caméra de couper le message de bienvenue
-let welcomeFinished = false;
+let currentUser = null;
 
 
 
@@ -141,6 +140,7 @@ const configuration = {
 socket.emit(
     "displayReady"
 );
+
 
 
 
@@ -185,35 +185,6 @@ function showMessage(text,duration){
 
 
 
-async function welcomeVisitor(user){
-
-
-    welcomeFinished = false;
-
-
-
-    await showMessage(
-
-        "Infinity te souhaite la bienvenue " + user.name,
-
-        5000
-
-    );
-
-
-
-    welcomeFinished = true;
-
-
-
-}
-
-
-
-
-
-
-
 
 
 socket.on(
@@ -224,7 +195,12 @@ async(user)=>{
     if(user){
 
 
-        await welcomeVisitor(user);
+        currentUser = user;
+
+
+        // On cache le message et on laisse la caméra démarrer
+
+        message.style.display="none";
 
 
 
@@ -232,13 +208,19 @@ async(user)=>{
     else{
 
 
-        await showMessage(
+        if(currentUser){
 
-            "Infinity te remercie !",
 
-            2000
+            await showMessage(
 
-        );
+                "Infinity te remercie " + currentUser.name + " !",
+
+                2000
+
+            );
+
+
+        }
 
 
 
@@ -252,7 +234,7 @@ async(user)=>{
 
 
 
-        welcomeFinished = false;
+        currentUser = null;
 
 
 
@@ -311,27 +293,25 @@ async(offer)=>{
 
 
     peerConnection.ontrack =
-event=>{
+    event=>{
 
 
-    remoteVideo.srcObject =
-    event.streams[0];
-
-
-
-    remoteVideo.style.display =
-    "block";
+        remoteVideo.srcObject =
+        event.streams[0];
 
 
 
-    // On retire le texte dès que la caméra prend l'écran
-
-    message.style.display =
-    "none";
+        remoteVideo.style.display =
+        "block";
 
 
 
-};
+        message.style.display =
+        "none";
+
+
+
+    };
 
 
 
