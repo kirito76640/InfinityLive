@@ -84,13 +84,17 @@ video {
 <div id="message"></div>
 
 
-<video id="remoteVideo" autoplay playsinline></video>
+<video
+id="remoteVideo"
+autoplay
+playsinline>
+</video>
+
 
 
 
 
 <script src="/socket.io/socket.io.js"></script>
-
 
 
 <script>
@@ -102,6 +106,7 @@ const socket = io();
 
 const message =
 document.getElementById("message");
+
 
 
 const remoteVideo =
@@ -117,15 +122,22 @@ let currentUser = null;
 
 
 
+
 const configuration = {
 
 
     iceServers:[
 
+
         {
+
+
             urls:
             "stun:stun.l.google.com:19302"
+
+
         }
+
 
     ]
 
@@ -137,9 +149,15 @@ const configuration = {
 
 
 
+// ----------------------
+// DISPLAY PRET
+// ----------------------
+
+
 socket.emit(
     "displayReady"
 );
+
 
 
 
@@ -154,13 +172,17 @@ function showMessage(text,duration){
     return new Promise(resolve=>{
 
 
-        message.innerText = text;
+        message.innerText =
+        text;
 
 
-        message.style.display="block";
+        message.style.display =
+        "block";
 
 
-        remoteVideo.style.display="none";
+
+        remoteVideo.style.display =
+        "none";
 
 
 
@@ -187,6 +209,11 @@ function showMessage(text,duration){
 
 
 
+// ----------------------
+// CHANGEMENT VISITEUR
+// ----------------------
+
+
 socket.on(
 "currentVisitor",
 async(user)=>{
@@ -198,27 +225,38 @@ async(user)=>{
         currentUser = user;
 
 
-        // On cache le message et on laisse la caméra démarrer
 
-        message.style.display="none";
-
+        message.style.display =
+        "none";
 
 
     }
     else{
 
-    remoteVideo.srcObject = null;
 
-    remoteVideo.style.display = "none";
+        remoteVideo.srcObject =
+        null;
 
 
-    if(peerConnection){
 
-        peerConnection.close();
+        remoteVideo.style.display =
+        "none";
 
-        peerConnection = null;
 
-    }
+
+        if(peerConnection){
+
+
+            peerConnection.close();
+
+
+            peerConnection = null;
+
+
+        }
+
+
+
 
 
         if(currentUser){
@@ -234,6 +272,9 @@ async(user)=>{
 
 
         }
+
+
+
 
 
 
@@ -254,7 +295,6 @@ async(user)=>{
     }
 
 
-
 });
 
 
@@ -264,116 +304,65 @@ async(user)=>{
 
 
 
+// ----------------------
+// RECEPTION OFFER
+// ----------------------
+
 
 socket.on(
 "offer",
-async(offer)=>{console.log("✅ OFFER reçue par le display");
+async(offer)=>{
 
-    // Ferme l'ancienne connexion
+
+    console.log(
+        "📥 OFFER reçue"
+    );
+
+
+
     if(peerConnection){
+
 
         peerConnection.close();
 
+
         peerConnection = null;
 
+
     }
+
+
+
+
 
     peerConnection =
     new RTCPeerConnection(
         configuration
     );
 
+
+
+
+
     peerConnection.onicecandidate =
-    event=>{
+    (event)=>{
+
 
         if(event.candidate){
+
 
             socket.emit(
                 "iceCandidate",
                 event.candidate
             );
 
+
         }
 
+
     };
+    
 
-peerConnection.ontrack =
-event=>{
-
-    console.log("🎥 TRACK reçu !");
-
-
-    remoteVideo.srcObject =
-    event.streams[0];
-
-    remoteVideo.style.display =
-    "block";
-
-    message.style.display =
-    "none";
-
-};
-
-    await peerConnection.setRemoteDescription(
-        offer
-    );
-
-console.log("✅ RemoteDescription OK");
-
-    const answer =
-    await peerConnection.createAnswer();
-
-    console.log("✅ Answer créée");
-
-    await peerConnection.setLocalDescription(
-        answer
-    );
-
-    console.log("✅ LocalDescription OK");
-
-    socket.emit(
-        "answer",
-        answer
-    );
-
-});
-
-
-
-
-
-
-
-
-
-socket.on(
-"iceCandidate",
-async(candidate)=>{
-
-
-    if(peerConnection){
-
-
-        await peerConnection.addIceCandidate(
-            candidate
-        );
-
-
-    }
-
-
-});
-
-
-
-
-
-</script>
-
-
-</body>
-
-</html>
 
 
 
@@ -409,8 +398,6 @@ async(candidate)=>{
 
 
 
-
-
     await peerConnection.setRemoteDescription(
         offer
     );
@@ -418,7 +405,7 @@ async(candidate)=>{
 
 
     console.log(
-        "✅ Description distante enregistrée"
+        "✅ OFFER enregistrée"
     );
 
 
@@ -432,15 +419,11 @@ async(candidate)=>{
 
 
 
+
     await peerConnection.setLocalDescription(
         answer
     );
 
-
-
-    console.log(
-        "📤 ANSWER envoyée au serveur"
-    );
 
 
 
@@ -448,6 +431,12 @@ async(candidate)=>{
     socket.emit(
         "answer",
         answer
+    );
+
+
+
+    console.log(
+        "📤 ANSWER envoyée"
     );
 
 
@@ -484,7 +473,6 @@ async(candidate)=>{
             await peerConnection.addIceCandidate(
                 candidate
             );
-
 
 
             console.log(
