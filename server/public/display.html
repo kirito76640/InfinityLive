@@ -205,18 +205,20 @@ async(user)=>{
 
 
     }
+    else{
+
     remoteVideo.srcObject = null;
 
-remoteVideo.style.display = "none";
+    remoteVideo.style.display = "none";
 
-if(peerConnection){
 
-    peerConnection.close();
+    if(peerConnection){
 
-    peerConnection = null;
+        peerConnection.close();
 
-}
-    else{
+        peerConnection = null;
+
+    }
 
 
         if(currentUser){
@@ -265,7 +267,7 @@ if(peerConnection){
 
 socket.on(
 "offer",
-async(offer)=>{
+async(offer)=>{console.log("✅ OFFER reçue par le display");
 
     // Ferme l'ancienne connexion
     if(peerConnection){
@@ -295,30 +297,39 @@ async(offer)=>{
 
     };
 
-    peerConnection.ontrack =
-    event=>{
+peerConnection.ontrack =
+event=>{
 
-        remoteVideo.srcObject =
-        event.streams[0];
+    console.log("🎥 TRACK reçu !");
 
-        remoteVideo.style.display =
-        "block";
 
-        message.style.display =
-        "none";
+    remoteVideo.srcObject =
+    event.streams[0];
 
-    };
+    remoteVideo.style.display =
+    "block";
+
+    message.style.display =
+    "none";
+
+};
 
     await peerConnection.setRemoteDescription(
         offer
     );
 
+console.log("✅ RemoteDescription OK");
+
     const answer =
     await peerConnection.createAnswer();
+
+    console.log("✅ Answer créée");
 
     await peerConnection.setLocalDescription(
         answer
     );
+
+    console.log("✅ LocalDescription OK");
 
     socket.emit(
         "answer",
@@ -346,6 +357,152 @@ async(candidate)=>{
         await peerConnection.addIceCandidate(
             candidate
         );
+
+
+    }
+
+
+});
+
+
+
+
+
+</script>
+
+
+</body>
+
+</html>
+
+
+
+    peerConnection.ontrack =
+    (event)=>{
+
+
+        console.log(
+            "🎥 Flux vidéo reçu"
+        );
+
+
+
+        remoteVideo.srcObject =
+        event.streams[0];
+
+
+
+        remoteVideo.style.display =
+        "block";
+
+
+
+        message.style.display =
+        "none";
+
+
+
+    };
+
+
+
+
+
+
+
+
+    await peerConnection.setRemoteDescription(
+        offer
+    );
+
+
+
+    console.log(
+        "✅ Description distante enregistrée"
+    );
+
+
+
+
+
+
+    const answer =
+    await peerConnection.createAnswer();
+
+
+
+
+    await peerConnection.setLocalDescription(
+        answer
+    );
+
+
+
+    console.log(
+        "📤 ANSWER envoyée au serveur"
+    );
+
+
+
+
+    socket.emit(
+        "answer",
+        answer
+    );
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------------
+// RECEPTION ICE
+// ----------------------
+
+
+socket.on(
+"iceCandidate",
+async(candidate)=>{
+
+
+    if(peerConnection){
+
+
+        try{
+
+
+            await peerConnection.addIceCandidate(
+                candidate
+            );
+
+
+
+            console.log(
+                "🧊 ICE ajouté"
+            );
+
+
+        }
+        catch(error){
+
+
+            console.error(
+                "Erreur ICE :",
+                error
+            );
+
+
+        }
 
 
     }

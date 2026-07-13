@@ -22,8 +22,10 @@ const PORT = Number(process.env.PORT) || 3000;
 const queue = [];
 let currentVisitor = null;
 let displayTimer = null;
+// MODE AUTOMATIQUE
+let autoMode = false;
 // Connexion WebRTC
-const visitorSockets = new Map();
+let visitorSocketId = null;
 let displaySocketId = null;
 // ----------------------
 // MISE A JOUR POSITIONS
@@ -32,6 +34,37 @@ function updateQueuePositions() {
     queue.forEach((visitor, index) => {
         io.to(visitor.id).emit("queuePosition", index + 1);
     });
+}
+// ----------------------
+// PASSAGE AUTOMATIQUE
+// ----------------------
+function callNextVisitor() {
+    if (!autoMode)
+        return;
+    if (currentVisitor)
+        return;
+    if (queue.length === 0)
+        return;
+    const visitor = queue.shift();
+    if (!visitor)
+        return;
+    currentVisitor = visitor;
+    io.emit("queueUpdated", queue);
+    updateQueuePositions();
+    io.emit("currentVisitor", currentVisitor);
+    io.to(visitor.id)
+        .emit("visitorCalled");
+    console.log("Passage automatique :", visitor.name);
+    if (displayTimer) {
+        clearTimeout(displayTimer);
+    }
+    displayTimer =
+        setTimeout(() => {
+            currentVisitor = null;
+            io.emit("currentVisitor", null);
+            console.log("Fin passage automatique");
+            callNextVisitor();
+        }, 10000);
 }
 // ----------------------
 // ROUTES
@@ -52,10 +85,22 @@ io.on("connection", (socket) => {
     console.log("Nouvelle connexion :", socket.id);
     socket.emit("queueUpdated", queue);
     // ----------------------
+    // START / STOP AUTOMATIQUE
+    // ----------------------
+    socket.on("startAuto", () => {
+        autoMode = true;
+        console.log("Mode automatique activé");
+        callNextVisitor();
+    });
+    socket.on("stopAuto", () => {
+        autoMode = false;
+        console.log("Mode automatique arrêté");
+    });
+    // ----------------------
     // WEBRTC IDENTIFICATION
     // ----------------------
     socket.on("visitorReady", () => {
-        visitorSockets.set(socket.id, socket.id);
+        visitorSocketId = socket.id;
         console.log("Visiteur WebRTC prêt :", socket.id);
     });
     socket.on("displayReady", () => {
@@ -72,9 +117,8 @@ io.on("connection", (socket) => {
         }
     });
     socket.on("answer", (answer) => {
-        const visitor = currentVisitor?.id;
-        if (visitor) {
-            io.to(visitor)
+        if (visitorSocketId) {
+            io.to(visitorSocketId)
                 .emit("answer", answer);
         }
     });
@@ -93,9 +137,10 @@ io.on("connection", (socket) => {
         console.log("Nouvel arrivant :", name);
         io.emit("queueUpdated", queue);
         updateQueuePositions();
+        callNextVisitor();
     });
     // ----------------------
-    // ADMIN FAIRE PASSER
+    // ADMIN MANUEL (gardé)
     // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
@@ -117,14 +162,15 @@ io.on("connection", (socket) => {
             setTimeout(() => {
                 currentVisitor = null;
                 io.emit("currentVisitor", null);
-                console.log("Display remis en attente.");
             }, 10000);
     });
     // ----------------------
     // DECONNEXION
     // ----------------------
     socket.on("disconnect", () => {
-        visitorSockets.delete(socket.id);
+        if (socket.id === visitorSocketId) {
+            visitorSocketId = null;
+        }
         if (socket.id === displaySocketId) {
             displaySocketId = null;
         }
