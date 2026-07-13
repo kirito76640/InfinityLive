@@ -11,172 +11,57 @@
 
 <style>
 
-*{
-    box-sizing:border-box;
-}
+body {
 
-
-body{
-
-    margin:0;
-
-    min-height:100vh;
-
-    background:#000;
-
+    font-family: Arial, sans-serif;
+    text-align:center;
+    padding:30px;
+    background:#111;
     color:white;
 
-    font-family:Arial,sans-serif;
+}
 
-    display:flex;
 
-    justify-content:center;
 
-    align-items:center;
+.logo {
 
-    text-align:center;
+    width:250px;
+    max-width:80%;
+    margin-bottom:20px;
 
 }
 
 
 
-.container{
+
+video {
 
     width:90%;
-
-    max-width:450px;
-
-}
-
-
-
-.card{
-
-    background:#111;
-
-    padding:35px;
-
-    border-radius:25px;
+    max-width:400px;
+    margin-top:20px;
+    border-radius:15px;
 
 }
 
 
 
+button {
 
-
-/* LOGO INFINITYLIVE */
-
-.logo{
-
-    width:180px;
-
-    max-width:80%;
-
-    margin-bottom:20px;
-
-}
-
-
-
-
-
-h1{
-
-    font-size:42px;
-
-    margin:10px 0;
-
-}
-
-
-
-.subtitle{
-
-    color:#aaa;
-
-    font-size:20px;
-
-    margin-bottom:35px;
-
-}
-
-
-
-input{
-
-    width:100%;
-
-    padding:18px;
-
-    font-size:20px;
-
-    border-radius:12px;
-
-    border:none;
-
-    outline:none;
-
-    margin-bottom:20px;
-
-    text-align:center;
-
-}
-
-
-
-button{
-
-    width:100%;
-
-    padding:18px;
-
-    font-size:22px;
-
-    font-weight:bold;
-
-    border:none;
-
-    border-radius:12px;
-
-    background:white;
-
-    color:black;
-
+    padding:15px 30px;
+    font-size:18px;
+    margin-top:15px;
     cursor:pointer;
 
 }
 
 
 
-button:active{
+input {
 
-    transform:scale(0.98);
-
-}
-
-
-
-#status{
-
-    margin-top:25px;
-
-    font-size:22px;
-
-    color:#ddd;
-
-}
-
-
-
-video{
-
-    margin-top:30px;
-
-    width:100%;
-
-    border-radius:20px;
-
-    display:none;
+    padding:12px;
+    font-size:18px;
+    border-radius:8px;
+    border:none;
 
 }
 
@@ -188,92 +73,53 @@ video{
 </head>
 
 
-
 <body>
 
 
-
-<div class="container">
-
-
-<div class="card">
-
-
-
-<!--
-    TON LOGO INFINITYLIVE ICI
-
-    Place ton image dans :
-    server/public/images/logo.png
-
--->
-
-
 <img 
-class="logo"
-src=""C:\Users\infin\OneDrive\Bureau\InfinityLive\InfinityLive\server\public\images\logo infinity sans fond.png""
+src="/images/logo.png" 
 alt="InfinityLive"
+class="logo"
 >
 
 
 
-
-
-<h1>
-InfinityLive
-</h1>
+<h1>InfinityLive</h1>
 
 
 
-<div class="subtitle">
-
-Participez à l'expérience en direct
-
-</div>
-
-
+<p>
+Entrez votre prénom pour participer :
+</p>
 
 
 
 <input 
-id="name"
+id="name" 
 placeholder="Votre prénom"
 >
 
 
 
+<br>
+
 
 
 <button id="join">
-
 Participer
-
 </button>
 
 
 
-
-
-<div id="status"></div>
-
-
+<p id="status"></p>
 
 
 
 <video 
-id="camera"
-autoplay
-playsinline
-></video>
-
-
-
-
-
-</div>
-
-
-</div>
+id="camera" 
+autoplay 
+playsinline>
+</video>
 
 
 
@@ -281,7 +127,6 @@ playsinline
 
 
 <script src="/socket.io/socket.io.js"></script>
-
 
 
 <script>
@@ -308,6 +153,26 @@ document.getElementById("camera");
 
 
 
+let peerConnection;
+
+let localStream;
+
+
+
+
+
+const configuration = {
+
+    iceServers:[
+
+        {
+            urls:
+            "stun:stun.l.google.com:19302"
+        }
+
+    ]
+
+};
 
 
 
@@ -321,6 +186,9 @@ socket.on(
 
     status.innerText =
     "🎉 C'est votre tour !";
+
+
+    startWebRTC();
 
 
 });
@@ -351,18 +219,7 @@ button.onclick = async()=>{
 
         return;
 
-
     }
-
-
-
-
-
-
-    status.innerText =
-    "Activation de la caméra...";
-
-
 
 
 
@@ -370,10 +227,22 @@ button.onclick = async()=>{
     try{
 
 
-        const stream =
+        localStream =
         await navigator.mediaDevices.getUserMedia({
 
             video:{
+
+                width:{
+                    ideal:1280
+                },
+
+                height:{
+                    ideal:720
+                },
+
+                frameRate:{
+                    ideal:30
+                },
 
                 facingMode:"user"
 
@@ -386,17 +255,8 @@ button.onclick = async()=>{
 
 
 
-
         video.srcObject =
-        stream;
-
-
-
-
-        video.style.display =
-        "block";
-
-
+        localStream;
 
 
 
@@ -408,53 +268,208 @@ button.onclick = async()=>{
 
 
 
-
+        socket.emit(
+            "visitorReady"
+        );
 
 
 
         status.innerText =
-        "✅ Vous êtes dans la file d'attente";
-
-
-
-
-
-
-        button.style.display =
-        "none";
-
-
-        nameInput.style.display =
-        "none";
-
-
+        "Bienvenue " + name +
+        " ! Vous êtes dans la file d'attente.";
 
 
 
     }
-
     catch(error){
 
 
         console.error(error);
 
 
-
         status.innerText =
-        "Impossible d'accéder à la caméra";
-
+        "Impossible d'accéder à la caméra.";
 
 
     }
-
 
 
 };
 
 
 
-</script>
 
+
+
+
+
+
+async function startWebRTC(){
+
+
+
+    peerConnection =
+    new RTCPeerConnection(
+        configuration
+    );
+
+
+
+
+    localStream
+    .getTracks()
+    .forEach(track=>{
+
+
+        peerConnection.addTrack(
+            track,
+            localStream
+        );
+
+
+    });
+
+
+
+
+
+
+    const sender =
+    peerConnection
+    .getSenders()
+    .find(
+        s => s.track &&
+        s.track.kind==="video"
+    );
+
+
+
+    if(sender){
+
+
+        const parameters =
+        sender.getParameters();
+
+
+
+        if(!parameters.encodings){
+
+            parameters.encodings=[{}];
+
+        }
+
+
+
+        parameters.encodings[0].maxBitrate =
+        2500000;
+
+
+
+        await sender.setParameters(
+            parameters
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+    peerConnection.onicecandidate =
+    event=>{
+
+
+        if(event.candidate){
+
+
+            socket.emit(
+                "iceCandidate",
+                event.candidate
+            );
+
+
+        }
+
+
+    };
+
+
+
+
+
+
+
+
+    const offer =
+    await peerConnection.createOffer();
+
+
+
+    await peerConnection.setLocalDescription(
+        offer
+    );
+
+
+
+    socket.emit(
+        "offer",
+        offer
+    );
+
+
+}
+
+
+
+
+
+
+
+
+
+socket.on(
+"answer",
+async(answer)=>{
+
+
+    await peerConnection.setRemoteDescription(
+        answer
+    );
+
+
+});
+
+
+
+
+
+
+
+socket.on(
+"iceCandidate",
+async(candidate)=>{
+
+
+    if(peerConnection){
+
+
+        await peerConnection.addIceCandidate(
+            candidate
+        );
+
+
+    }
+
+
+});
+
+
+
+</script>
 
 
 </body>
