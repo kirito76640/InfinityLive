@@ -65,6 +65,13 @@ const video = document.getElementById("camera");
 // Connexion Socket.IO dès le chargement de la page
 const socket = io();
 
+socket.on("visitorCalled", () => {
+
+    status.innerText =
+        "🎉 C'est votre tour ! Vous êtes appelé.";
+
+});
+
 button.onclick = async () => {
 
     const name = nameInput.value.trim();

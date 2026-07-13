@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,41 +57,54 @@ button{
 
 }
 
+button:disabled{
+
+    cursor:not-allowed;
+    opacity:0.5;
+
+}
+
 </style>
 
 </head>
 
+
 <body>
 
+
 <header>
-
 InfinityLive - Administration
-
 </header>
+
 
 <main>
 
 <h2>File d'attente</h2>
 
 <div id="queue">
-
 Aucun visiteur.
-
 </div>
 
 </main>
 
+
 <script src="/socket.io/socket.io.js"></script>
 
+
 <script>
+
 
 const socket = io();
 
 const queue = document.getElementById("queue");
 
+
+
 socket.on("queueUpdated",(users)=>{
 
+
     queue.innerHTML="";
+
 
     if(users.length===0){
 
@@ -100,34 +114,61 @@ socket.on("queueUpdated",(users)=>{
 
     }
 
+
+
     users.forEach((user,index)=>{
+
 
         const div=document.createElement("div");
 
         div.className="user";
 
-        div.innerHTML=`
-<span>${index+1}. ${user.name}</span>
-${
-    index === 0
-    ? `<button onclick="callUser('${user.id}')">Faire passer</button>`
-    : `<button disabled>En attente</button>`
-}
-`;
+
+        if(index === 0){
+
+            div.innerHTML=`
+            <span>${index+1}. ${user.name}</span>
+            <button onclick="callUser('${user.id}')">
+                Faire passer
+            </button>
+            `;
+
+        }else{
+
+            div.innerHTML=`
+            <span>${index+1}. ${user.name}</span>
+            <button disabled>
+                En attente...
+            </button>
+            `;
+
+        }
+
 
         queue.appendChild(div);
 
+
     });
+
 
 });
 
+
+
 function callUser(id){
+
+    console.log("Bouton cliqué :", id);
 
     socket.emit("callVisitor", id);
 
+    console.log("Événement callVisitor envoyé");
+
 }
+
 
 </script>
 
+
 </body>
+
 </html>
