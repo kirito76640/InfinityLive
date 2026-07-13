@@ -18,6 +18,7 @@ const io = new Server(httpServer, {
 const PORT: number = Number(process.env.PORT) || 3000;
 
 
+
 // ----------------------
 // FILE D'ATTENTE
 // ----------------------
@@ -28,10 +29,16 @@ const queue: {
 }[] = [];
 
 
+let currentVisitor: {
+    id: string;
+    name: string;
+} | null = null;
+
+
 
 
 // ----------------------
-// ROUTES DES PAGES
+// ROUTES
 // ----------------------
 
 
@@ -44,7 +51,6 @@ app.get("/", (req, res) => {
 });
 
 
-
 app.get("/admin", (req, res) => {
 
     res.sendFile(
@@ -54,7 +60,6 @@ app.get("/admin", (req, res) => {
 });
 
 
-
 app.get("/display", (req, res) => {
 
     res.sendFile(
@@ -62,6 +67,7 @@ app.get("/display", (req, res) => {
     );
 
 });
+
 
 
 
@@ -81,18 +87,33 @@ io.on("connection", (socket) => {
 
 
 
+    // Envoi de la file actuelle au nouvel admin
+
+    socket.emit(
+        "queueUpdated",
+        queue
+    );
+
+
+
+
+    // Visiteur rejoint
+
     socket.on(
         "joinQueue",
-        (name: string) => {
+        (name:string)=>{
 
 
-            queue.push({
+            const visitor = {
 
                 id: socket.id,
 
-                name: name
+                name:name
 
-            });
+            };
+
+
+            queue.push(visitor);
 
 
 
@@ -116,14 +137,104 @@ io.on("connection", (socket) => {
 
 
 
+    // ADMIN : faire passer un visiteur
+
+    socket.on(
+        "callVisitor",
+        (visitorId:string)=>{
+
+
+            const visitorIndex =
+            queue.findIndex(
+                user => user.id === visitorId
+            );
+
+
+
+            if(visitorIndex !== -1){
+
+
+                currentVisitor =
+                queue[visitorIndex];
+
+
+
+                queue.splice(
+                    visitorIndex,
+                    1
+                );
+
+
+
+                console.log(
+                    "Visiteur appelé :",
+                    currentVisitor.name
+                );
+
+
+
+                io.emit(
+                    "queueUpdated",
+                    queue
+                );
+
+
+
+                io.emit(
+                    "currentVisitor",
+                    currentVisitor
+                );
+
+
+
+                io.to(visitorId).emit(
+                    "visitorCalled"
+                );
+
+
+            }
+
+
+        }
+    );
+
+
+
+
+
+    // ADMIN : terminer
+
+    socket.on(
+        "finishVisitor",
+        ()=>{
+
+
+            currentVisitor = null;
+
+
+
+            io.emit(
+                "currentVisitor",
+                null
+            );
+
+
+        }
+    );
+
+
+
+
+
+
     socket.on(
         "disconnect",
-        () => {
+        ()=>{
 
 
             const index =
             queue.findIndex(
-                (user) => user.id === socket.id
+                user => user.id === socket.id
             );
 
 
@@ -167,13 +278,13 @@ io.on("connection", (socket) => {
 
 
 // ----------------------
-// DEMARRAGE SERVEUR
+// DEMARRAGE
 // ----------------------
 
 httpServer.listen(
     PORT,
     "0.0.0.0",
-    () => {
+    ()=>{
 
         console.log(
             `InfinityLive serveur démarré sur le port ${PORT}`
