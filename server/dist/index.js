@@ -21,13 +21,18 @@ const PORT = Number(process.env.PORT) || 3000;
 // ----------------------
 const queue = [];
 let currentVisitor = null;
-// Timer display
 let displayTimer = null;
-// ----------------------
-// WEBRTC CONNECTIONS
-// ----------------------
+// Connexion WebRTC
 let visitorSocketId = null;
 let displaySocketId = null;
+// ----------------------
+// MISE A JOUR POSITIONS
+// ----------------------
+function updateQueuePositions() {
+    queue.forEach((visitor, index) => {
+        io.to(visitor.id).emit("queuePosition", index + 1);
+    });
+}
 // ----------------------
 // ROUTES
 // ----------------------
@@ -47,7 +52,7 @@ io.on("connection", (socket) => {
     console.log("Nouvelle connexion :", socket.id);
     socket.emit("queueUpdated", queue);
     // ----------------------
-    // IDENTIFICATION WEBRTC
+    // WEBRTC IDENTIFICATION
     // ----------------------
     socket.on("visitorReady", () => {
         visitorSocketId = socket.id;
@@ -58,7 +63,7 @@ io.on("connection", (socket) => {
         console.log("Display WebRTC prêt :", socket.id);
     });
     // ----------------------
-    // SIGNALISATION WEBRTC
+    // WEBRTC RELAIS
     // ----------------------
     socket.on("offer", (offer) => {
         if (displaySocketId) {
@@ -73,17 +78,10 @@ io.on("connection", (socket) => {
         }
     });
     socket.on("iceCandidate", (candidate) => {
-        if (socket.id === visitorSocketId && displaySocketId) {
-            io.to(displaySocketId)
-                .emit("iceCandidate", candidate);
-        }
-        if (socket.id === displaySocketId && visitorSocketId) {
-            io.to(visitorSocketId)
-                .emit("iceCandidate", candidate);
-        }
+        socket.broadcast.emit("iceCandidate", candidate);
     });
     // ----------------------
-    // VISITEUR REJOINT LA FILE
+    // VISITEUR REJOINT
     // ----------------------
     socket.on("joinQueue", (name) => {
         const visitor = {
@@ -93,9 +91,10 @@ io.on("connection", (socket) => {
         queue.push(visitor);
         console.log("Nouvel arrivant :", name);
         io.emit("queueUpdated", queue);
+        updateQueuePositions();
     });
     // ----------------------
-    // ADMIN - FAIRE PASSER
+    // ADMIN FAIRE PASSER
     // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
@@ -103,9 +102,8 @@ io.on("connection", (socket) => {
             return;
         currentVisitor =
             queue[visitorIndex];
-        // On mémorise le visiteur appelé
-        visitorSocketId = visitorId;
         queue.splice(visitorIndex, 1);
+        updateQueuePositions();
         io.emit("queueUpdated", queue);
         io.emit("currentVisitor", currentVisitor);
         io.to(visitorId)
@@ -135,6 +133,7 @@ io.on("connection", (socket) => {
         if (index !== -1) {
             queue.splice(index, 1);
             io.emit("queueUpdated", queue);
+            updateQueuePositions();
         }
         console.log("Déconnexion :", socket.id);
     });
