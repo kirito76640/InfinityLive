@@ -1,3 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>InfinityLive</title>
+
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+
+body{
+
+    margin:0;
+
+    min-height:100vh;
+
+    background:#bb07d3;
+
+    color:white;
+
+    font-family:Arial,sans-serif;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:20px;
+
+}
+
+
+
+.container{
+
+    width:100%;
+
+    max-width:430px;
+
+    text-align:center;
+
+}
+
+
+
+.logo{
+
+    width:220px;
+
+    max-width:80%;
+
+    margin-bottom:20px;
+
+}
+
+
+
+.card{
+
+    background:rgba(0,0,0,0.75);
+
+    border-radius:20px;
+
+    padding:25px;
+
+    box-shadow:0 0 25px rgba(0,0,0,0.5);
+
+}
+
+
+
+h1{
+
+    margin-top:0;
+
+}
+
+
+
+input{
+
+    width:100%;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    border:none;
+
+    font-size:18px;
+
+    margin-top:15px;
+
+}
+
+
+
+button{
+
+    width:100%;
+
+    margin-top:15px;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    border:none;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+    background:#ffffff;
+
+    color:#000;
+
+}
+
+
+
+#status{
+
+    margin-top:20px;
+
+    font-size:20px;
+
+}
+
+
+
+#position{
+
+    margin-top:10px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+}
+
+
+
+video{
+
+    width:100%;
+
+    margin-top:25px;
+
+    border-radius:20px;
+
+    background:black;
+
+    display:none;
+
+}
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+
+<div class="container">
+
+
+
+<img
+class="logo"
+src="/images/logo.png"
+alt="InfinityLive">
+
+
+
+
+
+<div class="card">
+
+
+
+<h1>
+Bienvenue
+</h1>
+
+
+
+<p>
+Entrez votre prénom pour participer
+</p>
+
+
+
+
+
+<input
+id="name"
+placeholder="Votre prénom">
+
+
+
+
+
+<button id="join">
+
+Participer
+
+</button>
+
+
+
+
+
+<div id="status"></div>
+
+
+<div id="position"></div>
+
+
+
+
+
+<video
+id="camera"
+autoplay
+playsinline>
+</video>
+
+
+
+</div>
+
+
+
+
+
 <script src="/socket.io/socket.io.js"></script>
 
 
@@ -39,6 +288,8 @@ let peerConnection = null;
 
 
 
+
+
 const rtcConfiguration = {
 
     iceServers:[
@@ -57,9 +308,8 @@ const rtcConfiguration = {
 
 
 
-
 // ----------------------
-// FILE D'ATTENTE
+// POSITION FILE
 // ----------------------
 
 
@@ -85,10 +335,8 @@ socket.on(
 
 
 
-
-
 // ----------------------
-// SON TOUR
+// TON TOUR
 // ----------------------
 
 
@@ -98,9 +346,8 @@ async()=>{
 
 
     console.log(
-        "🎥 Création caméra WebRTC"
+        "🎥 Début envoi caméra"
     );
-
 
 
     status.innerText =
@@ -114,31 +361,31 @@ async()=>{
 
     if(!cameraStream){
 
+
         console.log(
-            "Pas de caméra disponible"
+            "Aucun flux caméra"
         );
+
 
         return;
 
+
     }
 
 
 
 
-
-
-    // Nettoyage ancienne connexion
 
     if(peerConnection){
 
+
         peerConnection.close();
+
 
         peerConnection = null;
 
+
     }
-
-
-
 
 
 
@@ -185,59 +432,42 @@ async()=>{
 
 
     };
-<script src="/socket.io/socket.io.js"></script>
-
-
-<script>
-
-
-const socket = io();
+    
 
 
 
-const button =
-document.getElementById("join");
-
-
-const nameInput =
-document.getElementById("name");
-
-
-const status =
-document.getElementById("status");
-
-
-const position =
-document.getElementById("position");
-
-
-const video =
-document.getElementById("camera");
+    const offer =
+    await peerConnection.createOffer();
 
 
 
-let joined = false;
 
-
-let cameraStream = null;
-
-
-let peerConnection = null;
+    await peerConnection.setLocalDescription(
+        offer
+    );
 
 
 
-const rtcConfiguration = {
 
-    iceServers:[
 
-        {
-            urls:
-            "stun:stun.l.google.com:19302"
-        }
+    socket.emit(
+        "offer",
+        offer
+    );
 
-    ]
 
-};
+
+    console.log(
+        "📤 OFFER envoyée au serveur"
+    );
+
+
+
+});
+
+
+
+
 
 
 
@@ -246,20 +476,26 @@ const rtcConfiguration = {
 
 
 // ----------------------
-// FILE D'ATTENTE
+// RECEPTION ANSWER
 // ----------------------
 
 
 socket.on(
-"queuePosition",
-(pos)=>{
+"answer",
+async(answer)=>{
 
 
-    if(joined){
+    if(peerConnection){
 
 
-        position.innerText =
-        "Position dans la file : " + pos;
+        await peerConnection.setRemoteDescription(
+            answer
+        );
+
+
+        console.log(
+            "📥 ANSWER reçue"
+        );
 
 
     }
@@ -274,104 +510,345 @@ socket.on(
 
 
 
+
 // ----------------------
-// SON TOUR
+// RECEPTION ICE
 // ----------------------
 
 
 socket.on(
-"visitorCalled",
-async()=>{
+"iceCandidate",
+async(candidate)=>{
 
-
-    console.log(
-        "🎥 Création caméra WebRTC"
-    );
-
-
-
-    status.innerText =
-    "🎉 C'est votre tour !";
-
-
-
-    position.innerText = "";
-
-
-
-    if(!cameraStream){
-
-        console.log(
-            "Pas de caméra disponible"
-        );
-
-        return;
-
-    }
-
-
-
-
-
-
-    // Nettoyage ancienne connexion
 
     if(peerConnection){
 
-        peerConnection.close();
 
-        peerConnection = null;
-
-    }
+        try{
 
 
+            await peerConnection.addIceCandidate(
+                candidate
+            );
 
 
+            console.log(
+                "🧊 ICE ajouté"
+            );
 
 
-    peerConnection =
-    new RTCPeerConnection(
-        rtcConfiguration
-    );
+        }
+        catch(error){
 
 
-
-
-
-    cameraStream
-    .getTracks()
-    .forEach(track=>{
-
-
-        peerConnection.addTrack(
-            track,
-            cameraStream
-        );
-
-
-    });
-
-
-
-
-
-    peerConnection.onicecandidate =
-    (event)=>{
-
-
-        if(event.candidate){
-
-
-            socket.emit(
-                "iceCandidate",
-                event.candidate
+            console.error(
+                "Erreur ICE :",
+                error
             );
 
 
         }
 
 
+    }
+
+
+});
+
+
+
+
+
+
+
+
+
+// ----------------------
+// BOUTON PARTICIPER
+// ----------------------
+
+
+button.onclick =
+async()=>{
+
+
+    const name =
+    nameInput.value.trim();
+
+
+
+
+
+    if(!name){
+
+
+        alert(
+            "Veuillez entrer votre prénom"
+        );
+
+
+        return;
+
+
+    }
+
+
+
+
+
+
+    try{
+
+
+        cameraStream =
+        await navigator.mediaDevices.getUserMedia({
+
+            video:{
+
+
+                facingMode:"user",
+
+
+                width:{
+
+
+                    ideal:1280
+
+
+                },
+
+
+                height:{
+
+
+                    ideal:720
+
+
+                }
+
+
+            },
+
+
+            audio:false
+
+
+        });
+
+
+
+
+
+        console.log(
+            "📷 Caméra activée"
+        );
+
+
+
+
+
+
+        // Identification WebRTC
+
+        socket.emit(
+            "visitorReady"
+        );
+
+
+
+
+
+
+        // Entrée file d'attente
+
+        socket.emit(
+            "joinQueue",
+            name
+        );
+
+
+
+
+
+
+
+        joined = true;
+
+
+
+
+
+
+        button.style.display =
+        "none";
+
+
+
+        nameInput.style.display =
+        "none";
+
+
+
+
+
+
+        status.innerText =
+        "✅ Vous êtes dans la file d'attente";
+
+
+
+    }
+
+
+    catch(error){
+
+
+        console.error(
+            error
+        );
+
+
+        status.innerText =
+        "Autorisation caméra refusée";
+
+
+    }
+
+
+};
+
+
+
+
+
+</script>
+
+
+</body>
+
+</html>
+ 
+peerConnection.ontrack =
+    (event)=>{
+
+
+        console.log(
+            "🎥 Vidéo reçue"
+        );
+
+
+        remoteVideo.srcObject =
+        event.streams[0];
+
+
+        remoteVideo.style.display =
+        "block";
+
+
+        message.style.display =
+        "none";
+
+
     };
+
+
+
+
+    await peerConnection.setRemoteDescription(
+        offer
+    );
+
+
+    console.log(
+        "✅ OFFER enregistrée"
+    );
+
+
+
+
+    const answer =
+    await peerConnection.createAnswer();
+
+
+
+
+    await peerConnection.setLocalDescription(
+        answer
+    );
+
+
+
+    socket.emit(
+        "answer",
+        answer
+    );
+
+
+
+    console.log(
+        "📤 ANSWER envoyée"
+    );
+
+
+});
+
+
+
+
+
+
+
+
+
+
+// ----------------------
+// ICE
+// ----------------------
+
+
+socket.on(
+"iceCandidate",
+async(candidate)=>{
+
+
+    if(peerConnection){
+
+
+        try{
+
+
+            await peerConnection.addIceCandidate(
+                candidate
+            );
+
+
+            console.log(
+                "🧊 ICE ajouté"
+            );
+
+
+        }
+        catch(error){
+
+
+            console.error(
+                "Erreur ICE :",
+                error
+            );
+
+
+        }
+
+
+    }
+
+
+});
+
+
+
+
+
 </script>
 
 
