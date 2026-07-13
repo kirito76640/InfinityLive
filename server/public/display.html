@@ -16,7 +16,7 @@ body {
     margin:0;
     background:black;
     color:white;
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
 
     display:flex;
     justify-content:center;
@@ -43,10 +43,24 @@ body {
 
     display:none;
 
-    font-size:120px;
+    font-size:100px;
     font-weight:bold;
 
 }
+
+
+
+video {
+
+    display:none;
+
+    width:90vw;
+    height:90vh;
+
+    object-fit:cover;
+
+}
+
 
 
 </style>
@@ -59,17 +73,21 @@ body {
 
 
 <div id="status">
-    En attente
+En attente
 </div>
 
 
-<div id="visitor">
+<div id="visitor"></div>
 
-</div>
+
+<video id="remoteVideo" autoplay playsinline></video>
+
+
 
 
 
 <script src="/socket.io/socket.io.js"></script>
+
 
 
 <script>
@@ -79,54 +97,214 @@ const socket = io();
 
 
 
-const status = document.getElementById("status");
+const status =
+document.getElementById("status");
 
-const visitor = document.getElementById("visitor");
+
+const visitor =
+document.getElementById("visitor");
+
+
+const remoteVideo =
+document.getElementById("remoteVideo");
+
+
+
+let peerConnection;
+
+
+
+const configuration = {
+
+
+    iceServers:[
+
+        {
+
+            urls:
+            "stun:stun.l.google.com:19302"
+
+        }
+
+    ]
+
+
+};
+
+
+
+
+
+socket.emit(
+    "displayReady"
+);
+
+
 
 
 
 
 
 socket.on(
-    "currentVisitor",
-    (user)=>{
+"currentVisitor",
+(user)=>{
 
 
-        if(user){
+    if(user){
 
 
-            status.style.display = "none";
+        status.style.display="none";
 
 
-            visitor.style.display = "block";
+        visitor.style.display="block";
 
 
-            visitor.innerText =
-            user.name;
-
-
-
-        }
-        else{
-
-
-            visitor.style.display = "none";
-
-
-            status.style.display = "block";
-
-
-            status.innerText =
-            "En attente";
-
-
-        }
+        visitor.innerText =
+        user.name;
 
 
     }
 
-);
+    else{
 
+
+        visitor.style.display="none";
+
+
+        status.style.display="block";
+
+
+        remoteVideo.style.display="none";
+
+
+        status.innerText =
+        "En attente";
+
+
+    }
+
+
+});
+
+
+
+
+
+
+
+socket.on(
+"offer",
+async(offer)=>{
+
+
+    peerConnection =
+    new RTCPeerConnection(
+        configuration
+    );
+
+
+
+
+    peerConnection.onicecandidate =
+    event=>{
+
+
+        if(event.candidate){
+
+
+            socket.emit(
+                "iceCandidate",
+                event.candidate
+            );
+
+
+        }
+
+
+    };
+
+
+
+
+
+    peerConnection.ontrack =
+    event=>{
+
+
+        remoteVideo.srcObject =
+        event.streams[0];
+
+
+        remoteVideo.style.display =
+        "block";
+
+
+        visitor.style.display =
+        "none";
+
+
+        status.style.display =
+        "none";
+
+
+    };
+
+
+
+
+
+    await peerConnection.setRemoteDescription(
+        offer
+    );
+
+
+
+
+    const answer =
+    await peerConnection.createAnswer();
+
+
+
+
+    await peerConnection.setLocalDescription(
+        answer
+    );
+
+
+
+
+    socket.emit(
+        "answer",
+        answer
+    );
+
+
+});
+
+
+
+
+
+
+
+
+socket.on(
+"iceCandidate",
+async(candidate)=>{
+
+
+    if(peerConnection){
+
+
+        await peerConnection.addIceCandidate(
+            candidate
+        );
+
+
+    }
+
+
+});
 
 
 
