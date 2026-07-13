@@ -11,39 +11,22 @@
 
 <style>
 
-
-/* =========================
-   CONFIGURATION COULEURS
-   ========================= */
-
-:root {
-
-    --couleur-fond:#980abb;
-    --couleur-texte:white;
-    --couleur-principale:#ffffff;
-
+*{
+    box-sizing:border-box;
 }
 
 
+body{
 
-/* =========================
-   STYLE GENERAL
-   ========================= */
-
-
-body {
-
-    font-family:Arial, sans-serif;
-
-    text-align:center;
-
-    padding:30px;
-
-    background:var(--couleur-fond);
-
-    color:var(--couleur-texte);
+    margin:0;
 
     min-height:100vh;
+
+    background:#111;
+
+    color:white;
+
+    font-family:Arial,sans-serif;
 
     display:flex;
 
@@ -51,147 +34,119 @@ body {
 
     align-items:center;
 
-}
-
-
-
-
-
-/* =========================
-   ENCADRE PRINCIPAL
-   ========================= */
-
-
-.card {
-
-
-    background:#000;
-
-
-    border-radius:25px;
-
-
-    padding:40px;
-
-
-    width:90%;
-
-
-    max-width:450px;
-
-
-    box-shadow:
-    0 0 30px rgba(0,0,0,0.5);
-
+    padding:20px;
 
 }
 
 
 
+.container{
 
+    width:100%;
 
-.logo {
-
-
-    width:250px;
-
-
-    max-width:80%;
-
-
-    margin-bottom:20px;
-
-
-}
-
-
-
-
-
-h1 {
-
-
-    color:var(--couleur-principale);
-
-
-}
-
-
-
-
-
-video {
-
-
-    width:90%;
-
-
-    max-width:400px;
-
-
-    margin-top:20px;
-
-
-    border-radius:15px;
-
-
-}
-
-
-
-
-
-button {
-
-
-    padding:15px 30px;
-
-
-    font-size:18px;
-
-
-    margin-top:15px;
-
-
-    cursor:pointer;
-
-
-    background:var(--couleur-principale);
-
-
-    border:none;
-
-
-    border-radius:10px;
-
-
-}
-
-
-
-
-
-input {
-
-
-    padding:12px;
-
-
-    font-size:18px;
-
-
-    border-radius:8px;
-
-
-    border:none;
-
+    max-width:420px;
 
     text-align:center;
 
+}
+
+
+
+.card{
+
+    background:#000;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    box-shadow:0 0 20px rgba(255,255,255,0.1);
 
 }
 
 
+
+h1{
+
+    font-size:35px;
+
+}
+
+
+
+input{
+
+    width:100%;
+
+    padding:15px;
+
+    font-size:18px;
+
+    border-radius:10px;
+
+    border:none;
+
+    margin-top:15px;
+
+}
+
+
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    margin-top:15px;
+
+    font-size:20px;
+
+    border-radius:10px;
+
+    border:none;
+
+    cursor:pointer;
+
+}
+
+
+
+#status{
+
+    margin-top:20px;
+
+    font-size:20px;
+
+}
+
+
+
+#position{
+
+    margin-top:10px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+}
+
+
+
+
+
+video{
+
+    margin-top:25px;
+
+    width:100%;
+
+    border-radius:20px;
+
+    background:black;
+
+}
 
 
 
@@ -205,17 +160,11 @@ input {
 
 
 
+<div class="container">
+
+
+
 <div class="card">
-
-
-
-<img 
-src="/images/logo.png"
-alt="InfinityLive"
-class="logo"
->
-
-
 
 
 <h1>
@@ -223,37 +172,32 @@ InfinityLive
 </h1>
 
 
-
-
 <p>
-Entrez votre prénom pour participer :
+Entrez votre prénom pour participer
 </p>
-
 
 
 
 <input 
 id="name"
 placeholder="Votre prénom"
->
-
-
-
-
-<br>
-
+/>
 
 
 
 <button id="join">
+
 Participer
+
 </button>
 
 
 
 
-<p id="status"></p>
+<div id="status"></div>
 
+
+<div id="position"></div>
 
 
 
@@ -263,13 +207,17 @@ Participer
 
 
 
-<video
+<video 
 id="camera"
 autoplay
 playsinline>
 </video>
 
 
+
+
+
+</div>
 
 
 
@@ -281,6 +229,7 @@ playsinline>
 
 
 <script>
+
 
 
 const socket = io();
@@ -299,31 +248,78 @@ const status =
 document.getElementById("status");
 
 
+const position =
+document.getElementById("position");
+
+
 const video =
 document.getElementById("camera");
 
 
 
-let peerConnection;
+let myId = null;
 
-let localStream;
+let joined = false;
 
 
 
-const configuration = {
 
-    iceServers:[
 
-        {
+socket.on(
+"connect",
+()=>{
 
-            urls:
-            "stun:stun.l.google.com:19302"
+    myId = socket.id;
 
-        }
+}
 
-    ]
+);
 
-};
+
+
+
+
+
+socket.on(
+"queueUpdated",
+(queue)=>{
+
+
+    if(!joined)
+        return;
+
+
+
+    const index =
+    queue.findIndex(
+        user=>user.id===myId
+    );
+
+
+
+    if(index !== -1){
+
+
+        position.innerText =
+        "Position dans la file : "
+        +(index+1);
+
+
+    }
+
+    else{
+
+
+        position.innerText =
+        "Votre passage arrive";
+
+
+    }
+
+
+
+});
+
 
 
 
@@ -339,7 +335,7 @@ socket.on(
     "🎉 C'est votre tour !";
 
 
-    startWebRTC();
+    position.innerText="";
 
 
 });
@@ -360,17 +356,13 @@ button.onclick = async()=>{
 
     if(!name){
 
-
         alert(
             "Veuillez entrer votre prénom"
         );
 
-
         return;
 
-
     }
-
 
 
 
@@ -378,37 +370,28 @@ button.onclick = async()=>{
     try{
 
 
-        localStream =
+        const stream =
         await navigator.mediaDevices.getUserMedia({
 
-
             video:{
-
 
                 width:{
                     ideal:1280
                 },
 
-
                 height:{
                     ideal:720
                 },
-
 
                 frameRate:{
                     ideal:30
                 },
 
-
                 facingMode:"user"
-
 
             },
 
-
             audio:false
-
-
 
         });
 
@@ -416,11 +399,8 @@ button.onclick = async()=>{
 
 
 
-
         video.srcObject =
-        localStream;
-
-
+        stream;
 
 
 
@@ -432,9 +412,6 @@ button.onclick = async()=>{
 
 
 
-
-
-
         socket.emit(
             "visitorReady"
         );
@@ -442,14 +419,24 @@ button.onclick = async()=>{
 
 
 
+        joined=true;
+
+
+
+        button.style.display =
+        "none";
+
+
+
+        nameInput.style.display =
+        "none";
+
+
+
 
 
         status.innerText =
-
-        "Bienvenue " + name +
-        " ! Vous êtes dans la file d'attente.";
-
-
+        "✅ Vous êtes dans la file d'attente";
 
 
 
@@ -462,10 +449,8 @@ button.onclick = async()=>{
         console.error(error);
 
 
-
         status.innerText =
-        "Impossible d'accéder à la caméra.";
-
+        "Impossible d'activer la caméra";
 
 
     }
@@ -477,191 +462,8 @@ button.onclick = async()=>{
 
 
 
-
-
-
-
-async function startWebRTC(){
-
-
-
-    peerConnection =
-    new RTCPeerConnection(
-        configuration
-    );
-
-
-
-
-
-    localStream
-    .getTracks()
-    .forEach(track=>{
-
-
-        peerConnection.addTrack(
-            track,
-            localStream
-        );
-
-
-    });
-
-
-
-
-
-
-    const sender =
-    peerConnection
-    .getSenders()
-    .find(
-        s =>
-        s.track &&
-        s.track.kind==="video"
-    );
-
-
-
-
-
-
-    if(sender){
-
-
-        const parameters =
-        sender.getParameters();
-
-
-
-        if(!parameters.encodings){
-
-            parameters.encodings=[{}];
-
-        }
-
-
-
-
-        parameters.encodings[0].maxBitrate =
-        2500000;
-
-
-
-        await sender.setParameters(
-            parameters
-        );
-
-
-    }
-
-
-
-
-
-
-
-
-
-    peerConnection.onicecandidate =
-    event=>{
-
-
-        if(event.candidate){
-
-
-            socket.emit(
-                "iceCandidate",
-                event.candidate
-            );
-
-
-        }
-
-
-    };
-
-
-
-
-
-
-
-
-
-    const offer =
-    await peerConnection.createOffer();
-
-
-
-
-
-
-    await peerConnection.setLocalDescription(
-        offer
-    );
-
-
-
-
-
-
-    socket.emit(
-        "offer",
-        offer
-    );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-socket.on(
-"answer",
-async(answer)=>{
-
-
-    await peerConnection.setRemoteDescription(
-        answer
-    );
-
-
-});
-
-
-
-
-
-
-
-socket.on(
-"iceCandidate",
-async(candidate)=>{
-
-
-    if(peerConnection){
-
-
-        await peerConnection.addIceCandidate(
-            candidate
-        );
-
-
-    }
-
-
-});
-
-
-
 </script>
+
 
 
 </body>
