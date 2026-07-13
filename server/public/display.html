@@ -11,6 +11,11 @@
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
+
 body {
 
     margin:0;
@@ -18,35 +23,57 @@ body {
     color:white;
     font-family:Arial,sans-serif;
 
+    width:100vw;
+    height:100vh;
+
+    overflow:hidden;
+
     display:flex;
     justify-content:center;
     align-items:center;
 
-    height:100vh;
-
-    text-align:center;
-
 }
+
 
 
 
 #status {
 
-    font-size:80px;
+    position:absolute;
+
+    font-size:70px;
+
     color:#777;
 
+    z-index:2;
+
 }
+
+
 
 
 
 #visitor {
 
-    display:none;
+    position:absolute;
 
-    font-size:100px;
+    top:40px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    font-size:80px;
+
     font-weight:bold;
 
+    z-index:3;
+
+    text-shadow:0 0 20px black;
+
 }
+
+
 
 
 
@@ -54,14 +81,17 @@ video {
 
     display:none;
 
-    width:80vw;
-    height:80vh;
+    width:100vw;
+
+    height:100vh;
 
     object-fit:contain;
 
     background:black;
 
 }
+
+
 
 
 
@@ -74,15 +104,19 @@ video {
 <body>
 
 
+
 <div id="status">
 En attente
 </div>
 
 
+
 <div id="visitor"></div>
 
 
+
 <video id="remoteVideo" autoplay playsinline></video>
+
 
 
 
@@ -93,6 +127,7 @@ En attente
 
 
 <script>
+
 
 
 const socket = io();
@@ -147,6 +182,7 @@ socket.emit(
 
 
 
+
 socket.on(
 "currentVisitor",
 (user)=>{
@@ -155,14 +191,12 @@ socket.on(
     if(user){
 
 
-        status.style.display="none";
-
-
         visitor.style.display="block";
 
 
         visitor.innerText =
         user.name;
+
 
 
     }
@@ -173,20 +207,23 @@ socket.on(
         visitor.style.display="none";
 
 
-        status.style.display="block";
-
-
         remoteVideo.style.display="none";
+
+
+        status.style.display="block";
 
 
         status.innerText =
         "En attente";
 
 
+
     }
 
 
 });
+
+
 
 
 
@@ -203,6 +240,7 @@ async(offer)=>{
     new RTCPeerConnection(
         configuration
     );
+
 
 
 
@@ -229,6 +267,7 @@ async(offer)=>{
 
 
 
+
     peerConnection.ontrack =
     event=>{
 
@@ -237,16 +276,15 @@ async(offer)=>{
         event.streams[0];
 
 
+
         remoteVideo.style.display =
         "block";
 
 
-        visitor.style.display =
-        "none";
-
 
         status.style.display =
         "none";
+
 
 
     };
@@ -255,9 +293,11 @@ async(offer)=>{
 
 
 
+
     await peerConnection.setRemoteDescription(
         offer
     );
+
 
 
 
@@ -281,7 +321,9 @@ async(offer)=>{
     );
 
 
+
 });
+
 
 
 
@@ -307,6 +349,7 @@ async(candidate)=>{
 
 
 });
+
 
 
 
