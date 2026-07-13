@@ -2,6 +2,7 @@
 <html lang="fr">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -13,24 +14,19 @@
 body{
 
     margin:0;
-
     background:#111;
-
     color:white;
-
     font-family:Arial;
 
 }
 
 
+
 header{
 
     background:#1f1f1f;
-
     padding:20px;
-
     font-size:28px;
-
     text-align:center;
 
 }
@@ -40,9 +36,7 @@ header{
 main{
 
     max-width:900px;
-
     margin:auto;
-
     padding:30px;
 
 }
@@ -52,8 +46,36 @@ main{
 h2{
 
     border-bottom:1px solid #444;
-
     padding-bottom:10px;
+
+}
+
+
+
+.controls{
+
+    display:flex;
+    gap:15px;
+    margin-bottom:20px;
+
+}
+
+
+
+button{
+
+    padding:12px 25px;
+    cursor:pointer;
+    font-size:16px;
+
+}
+
+
+
+#status{
+
+    margin-top:15px;
+    font-size:20px;
 
 }
 
@@ -62,18 +84,10 @@ h2{
 #current{
 
     margin-top:20px;
-
-    background:#0d5;
-
-    color:black;
-
     padding:15px;
-
     border-radius:10px;
-
+    background:#222;
     display:none;
-
-    font-size:20px;
 
 }
 
@@ -90,28 +104,13 @@ h2{
 .user{
 
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
 
     background:#222;
-
     margin-bottom:10px;
-
     padding:15px;
-
     border-radius:10px;
-
-}
-
-
-
-button{
-
-    padding:10px 20px;
-
-    cursor:pointer;
 
 }
 
@@ -119,9 +118,8 @@ button{
 
 button:disabled{
 
-    cursor:not-allowed;
-
     opacity:0.5;
+    cursor:not-allowed;
 
 }
 
@@ -129,10 +127,12 @@ button:disabled{
 
 </style>
 
+
 </head>
 
 
 <body>
+
 
 
 <header>
@@ -141,7 +141,36 @@ InfinityLive - Administration
 
 
 
+
+
 <main>
+
+
+
+<div class="controls">
+
+<button onclick="startAuto()">
+🟢 START AUTOMATIQUE
+</button>
+
+
+<button onclick="stopAuto()">
+🔴 STOP AUTOMATIQUE
+</button>
+
+
+</div>
+
+
+
+
+<div id="status">
+
+Automatique : ARRÊTÉ
+
+</div>
+
+
 
 
 <h2>
@@ -155,18 +184,25 @@ Visiteur en cours
 
 
 
+
+
 <h2>
 File d'attente
 </h2>
 
 
+
 <div id="queue">
+
 Aucun visiteur.
+
 </div>
 
 
 
+
 </main>
+
 
 
 
@@ -180,17 +216,68 @@ Aucun visiteur.
 <script>
 
 
+
 const socket = io();
 
 
-const queue = document.getElementById("queue");
+
+const queue =
+document.getElementById("queue");
 
 
-const current = document.getElementById("current");
+const status =
+document.getElementById("status");
+
+
+const current =
+document.getElementById("current");
 
 
 
-let visitorInProgress = false;
+let autoActive=false;
+
+
+
+
+
+
+function startAuto(){
+
+
+    autoActive=true;
+
+
+    status.innerText =
+    "Automatique : ACTIF 🟢";
+
+
+    socket.emit(
+        "startAuto"
+    );
+
+
+}
+
+
+
+
+
+function stopAuto(){
+
+
+    autoActive=false;
+
+
+    status.innerText =
+    "Automatique : ARRÊTÉ 🔴";
+
+
+    socket.emit(
+        "stopAuto"
+    );
+
+
+}
 
 
 
@@ -206,10 +293,8 @@ socket.on(
     if(user){
 
 
-        visitorInProgress = true;
-
-
-        current.style.display="block";
+        current.style.display =
+        "block";
 
 
         current.innerHTML =
@@ -220,14 +305,11 @@ socket.on(
 
 
     }
-
     else{
 
 
-        visitorInProgress=false;
-
-
-        current.style.display="none";
+        current.style.display =
+        "none";
 
 
     }
@@ -259,10 +341,7 @@ socket.on(
 
         return;
 
-
     }
-
-
 
 
 
@@ -282,47 +361,22 @@ socket.on(
 
 
 
+        div.innerHTML = `
 
-        if(index===0 && !visitorInProgress){
-
-
-            div.innerHTML=`
-
-            <span>
-            ${index+1}. ${user.name}
-            </span>
+        <span>
+        ${index+1}. ${user.name}
+        </span>
 
 
-            <button onclick="callUser('${user.id}')">
-            Faire passer
-            </button>
+        <button disabled>
 
-            `;
+        ${autoActive
+        ? "Automatique"
+        : "En attente"}
 
+        </button>
 
-        }
-
-        else{
-
-
-            div.innerHTML=`
-
-            <span>
-            ${index+1}. ${user.name}
-            </span>
-
-
-            <button disabled>
-            ${visitorInProgress 
-            ? "Passage en cours"
-            : "En attente..."}
-            </button>
-
-            `;
-
-
-        }
-
+        `;
 
 
 
@@ -342,28 +396,8 @@ socket.on(
 
 
 
-
-function callUser(id){
-
-
-    if(visitorInProgress)
-        return;
-
-
-
-    socket.emit(
-        "callVisitor",
-        id
-    );
-
-
-}
-
-
-
-
-
 </script>
+
 
 
 </body>
