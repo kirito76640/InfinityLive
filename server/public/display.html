@@ -36,7 +36,6 @@ body {
 
 
 
-
 #status {
 
     position:absolute;
@@ -48,32 +47,6 @@ body {
     z-index:2;
 
 }
-
-
-
-
-
-#visitor {
-
-    position:absolute;
-
-    top:40px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    font-size:80px;
-
-    font-weight:bold;
-
-    z-index:3;
-
-    text-shadow:0 0 20px black;
-
-}
-
-
 
 
 
@@ -93,8 +66,6 @@ video {
 
 
 
-
-
 </style>
 
 
@@ -108,10 +79,6 @@ video {
 <div id="status">
 En attente
 </div>
-
-
-
-<div id="visitor"></div>
 
 
 
@@ -129,17 +96,12 @@ En attente
 <script>
 
 
-
 const socket = io();
 
 
 
 const status =
 document.getElementById("status");
-
-
-const visitor =
-document.getElementById("visitor");
 
 
 const remoteVideo =
@@ -153,18 +115,14 @@ let peerConnection;
 
 const configuration = {
 
-
     iceServers:[
 
         {
-
             urls:
             "stun:stun.l.google.com:19302"
-
         }
 
     ]
-
 
 };
 
@@ -182,7 +140,6 @@ socket.emit(
 
 
 
-
 socket.on(
 "currentVisitor",
 (user)=>{
@@ -191,20 +148,12 @@ socket.on(
     if(user){
 
 
-        visitor.style.display="block";
-
-
-        visitor.innerText =
-        user.name;
-
+        status.style.display="none";
 
 
     }
 
     else{
-
-
-        visitor.style.display="none";
 
 
         remoteVideo.style.display="none";
@@ -215,7 +164,6 @@ socket.on(
 
         status.innerText =
         "En attente";
-
 
 
     }
