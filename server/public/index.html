@@ -11,40 +11,158 @@
 
 <style>
 
-body {
+*{
+    box-sizing:border-box;
+}
 
-    font-family: Arial, sans-serif;
+
+body{
+
+    margin:0;
+
+    min-height:100vh;
+
+    background:#000;
+
+    color:white;
+
+    font-family:Arial, sans-serif;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
     text-align:center;
-    padding:30px;
 
 }
 
 
-video {
+
+.container{
 
     width:90%;
-    max-width:400px;
-    margin-top:20px;
-    border-radius:15px;
+
+    max-width:450px;
 
 }
 
 
-button {
 
-    padding:15px 30px;
-    font-size:18px;
-    margin-top:15px;
+h1{
+
+    font-size:48px;
+
+    margin-bottom:10px;
+
+}
+
+
+
+.subtitle{
+
+    color:#aaa;
+
+    font-size:20px;
+
+    margin-bottom:40px;
 
 }
 
 
-input {
 
-    padding:12px;
-    font-size:18px;
+input{
+
+    width:100%;
+
+    padding:18px;
+
+    font-size:20px;
+
+    border-radius:12px;
+
+    border:none;
+
+    outline:none;
+
+    margin-bottom:20px;
+
+    text-align:center;
 
 }
+
+
+
+button{
+
+    width:100%;
+
+    padding:18px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:white;
+
+    color:black;
+
+    cursor:pointer;
+
+}
+
+
+
+button:active{
+
+    transform:scale(0.98);
+
+}
+
+
+
+#status{
+
+    margin-top:30px;
+
+    font-size:22px;
+
+    color:#ddd;
+
+}
+
+
+
+video{
+
+    margin-top:30px;
+
+    width:100%;
+
+    border-radius:20px;
+
+    display:none;
+
+}
+
+
+
+.card{
+
+    background:#111;
+
+    padding:30px;
+
+    border-radius:20px;
+
+}
+
+
 
 </style>
 
@@ -52,37 +170,67 @@ input {
 </head>
 
 
+
 <body>
 
 
-<h1>InfinityLive</h1>
+<div class="container">
 
 
-<p>
-Entrez votre prénom pour participer :
-</p>
+<div class="card">
 
 
-<input id="name" placeholder="Votre prénom">
+<h1>
+InfinityLive
+</h1>
 
 
-<br>
+<div class="subtitle">
+
+Participez à l'expérience en direct
+
+</div>
+
+
+
+<input 
+id="name"
+placeholder="Votre prénom"
+>
+
 
 
 <button id="join">
+
 Participer
+
 </button>
 
 
-<p id="status"></p>
+
+<div id="status"></div>
 
 
-<video id="camera" autoplay playsinline></video>
+
+<video 
+id="camera"
+autoplay
+playsinline
+></video>
+
+
+
+</div>
+
+
+</div>
+
 
 
 
 
 <script src="/socket.io/socket.io.js"></script>
+
 
 
 <script>
@@ -109,25 +257,6 @@ document.getElementById("camera");
 
 
 
-let peerConnection;
-
-let localStream;
-
-
-
-
-const configuration = {
-
-    iceServers:[
-
-        {
-            urls:"stun:stun.l.google.com:19302"
-        }
-
-    ]
-
-};
-
 
 
 
@@ -142,8 +271,6 @@ socket.on(
     "🎉 C'est votre tour !";
 
 
-    startWebRTC();
-
 
 });
 
@@ -153,7 +280,9 @@ socket.on(
 
 
 
-button.onclick = async ()=>{
+
+
+button.onclick = async()=>{
 
 
     const name =
@@ -163,48 +292,57 @@ button.onclick = async ()=>{
 
     if(!name){
 
-        alert("Veuillez entrer votre prénom");
+
+        alert(
+            "Veuillez entrer votre prénom"
+        );
+
 
         return;
 
+
     }
+
+
+
+
+
+
+    status.innerText =
+    "Activation de la caméra...";
+
+
+
 
 
 
     try{
 
 
-        localStream =
+        const stream =
         await navigator.mediaDevices.getUserMedia({
 
             video:{
-
-                width:{
-                    ideal:1280
-                },
-
-                height:{
-                    ideal:720
-                },
-
-                frameRate:{
-                    ideal:30
-                },
-
                 facingMode:"user"
             },
 
-
             audio:false
-
 
         });
 
 
 
 
+
         video.srcObject =
-        localStream;
+        stream;
+
+
+
+        video.style.display =
+        "block";
+
+
 
 
 
@@ -215,15 +353,24 @@ button.onclick = async ()=>{
 
 
 
-        socket.emit(
-            "visitorReady"
-        );
 
 
 
         status.innerText =
-        "Bienvenue " + name +
-        " ! Vous êtes dans la file d'attente.";
+        "✅ Vous êtes dans la file d'attente";
+
+
+
+
+
+        button.style.display =
+        "none";
+
+
+        nameInput.style.display =
+        "none";
+
+
 
 
 
@@ -232,191 +379,26 @@ button.onclick = async ()=>{
     catch(error){
 
 
+
         console.error(error);
 
 
+
         status.innerText =
-        "Impossible d'accéder à la caméra.";
+        "Impossible d'accéder à la caméra";
+
 
 
     }
+
 
 
 };
 
 
 
-
-
-
-
-
-
-async function startWebRTC(){
-
-
-
-    peerConnection =
-    new RTCPeerConnection(
-        configuration
-    );
-
-
-
-
-
-    localStream
-    .getTracks()
-    .forEach(track=>{
-
-
-        const sender =
-        peerConnection.addTrack(
-            track,
-            localStream
-        );
-
-
-
-    });
-
-
-
-
-
-    // Amélioration débit vidéo
-
-    const sender =
-    peerConnection
-    .getSenders()
-    .find(
-        s => s.track &&
-        s.track.kind === "video"
-    );
-
-
-
-    if(sender){
-
-
-        const parameters =
-        sender.getParameters();
-
-
-
-        if(!parameters.encodings){
-
-            parameters.encodings=[{}];
-
-        }
-
-
-
-        parameters.encodings[0].maxBitrate =
-        2500000;
-
-
-
-        await sender.setParameters(
-            parameters
-        );
-
-
-    }
-
-
-
-
-
-
-
-    peerConnection.onicecandidate =
-    event=>{
-
-
-        if(event.candidate){
-
-
-            socket.emit(
-                "iceCandidate",
-                event.candidate
-            );
-
-
-        }
-
-
-    };
-
-
-
-
-
-
-    const offer =
-    await peerConnection.createOffer();
-
-
-
-    await peerConnection.setLocalDescription(
-        offer
-    );
-
-
-
-    socket.emit(
-        "offer",
-        offer
-    );
-
-
-}
-
-
-
-
-
-
-
-
-socket.on(
-"answer",
-async(answer)=>{
-
-
-    await peerConnection.setRemoteDescription(
-        answer
-    );
-
-
-});
-
-
-
-
-
-
-socket.on(
-"iceCandidate",
-async(candidate)=>{
-
-
-    if(peerConnection){
-
-
-        await peerConnection.addIceCandidate(
-            candidate
-        );
-
-
-    }
-
-
-});
-
-
-
 </script>
+
 
 
 </body>
