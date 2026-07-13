@@ -43,7 +43,7 @@ let displayTimer: NodeJS.Timeout | null = null;
 
 // Connexion WebRTC
 
-let visitorSocketId: string | null = null;
+const visitorSockets = new Map<string,string>();
 
 let displaySocketId: string | null = null;
 
@@ -121,6 +121,8 @@ app.get("/display",(req,res)=>{
 
 
 
+
+
 // ----------------------
 // SOCKET.IO
 // ----------------------
@@ -144,6 +146,7 @@ io.on("connection",(socket)=>{
 
 
 
+
     // ----------------------
     // WEBRTC IDENTIFICATION
     // ----------------------
@@ -154,7 +157,10 @@ io.on("connection",(socket)=>{
         ()=>{
 
 
-            visitorSocketId = socket.id;
+            visitorSockets.set(
+                socket.id,
+                socket.id
+            );
 
 
             console.log(
@@ -165,6 +171,7 @@ io.on("connection",(socket)=>{
 
         }
     );
+
 
 
 
@@ -186,6 +193,8 @@ io.on("connection",(socket)=>{
 
         }
     );
+
+
 
 
 
@@ -223,15 +232,21 @@ io.on("connection",(socket)=>{
 
 
 
+
     socket.on(
         "answer",
         (answer)=>{
 
 
-            if(visitorSocketId){
+            const visitor =
+            currentVisitor?.id;
 
 
-                io.to(visitorSocketId)
+
+            if(visitor){
+
+
+                io.to(visitor)
                 .emit(
                     "answer",
                     answer
@@ -243,6 +258,8 @@ io.on("connection",(socket)=>{
 
         }
     );
+
+
 
 
 
@@ -262,6 +279,8 @@ io.on("connection",(socket)=>{
 
         }
     );
+
+
 
 
 
@@ -304,6 +323,7 @@ io.on("connection",(socket)=>{
 
 
 
+
             io.emit(
                 "queueUpdated",
                 queue
@@ -317,6 +337,9 @@ io.on("connection",(socket)=>{
 
         }
     );
+
+
+
 
 
 
@@ -350,8 +373,10 @@ io.on("connection",(socket)=>{
 
 
 
+
             currentVisitor =
             queue[visitorIndex];
+
 
 
 
@@ -366,7 +391,9 @@ io.on("connection",(socket)=>{
 
 
 
+
             updateQueuePositions();
+
 
 
 
@@ -381,10 +408,13 @@ io.on("connection",(socket)=>{
 
 
 
+
             io.emit(
                 "currentVisitor",
                 currentVisitor
             );
+
+
 
 
 
@@ -399,10 +429,15 @@ io.on("connection",(socket)=>{
 
 
 
+
+
             console.log(
                 "Visiteur appelé :",
                 currentVisitor.name
             );
+
+
+
 
 
 
@@ -415,6 +450,8 @@ io.on("connection",(socket)=>{
 
 
             }
+
+
 
 
 
@@ -456,6 +493,11 @@ io.on("connection",(socket)=>{
 
 
 
+
+
+
+
+
     // ----------------------
     // DECONNEXION
     // ----------------------
@@ -466,11 +508,9 @@ io.on("connection",(socket)=>{
         ()=>{
 
 
-            if(socket.id===visitorSocketId){
-
-                visitorSocketId=null;
-
-            }
+            visitorSockets.delete(
+                socket.id
+            );
 
 
 
@@ -479,6 +519,8 @@ io.on("connection",(socket)=>{
                 displaySocketId=null;
 
             }
+
+
 
 
 
@@ -495,6 +537,7 @@ io.on("connection",(socket)=>{
 
 
 
+
             if(index!==-1){
 
 
@@ -503,6 +546,8 @@ io.on("connection",(socket)=>{
                     index,
                     1
                 );
+
+
 
 
 
@@ -524,6 +569,8 @@ io.on("connection",(socket)=>{
 
 
 
+
+
             console.log(
                 "Déconnexion :",
                 socket.id
@@ -537,7 +584,11 @@ io.on("connection",(socket)=>{
 
 
 
+
 });
+
+
+
 
 
 

@@ -23,7 +23,7 @@ const queue = [];
 let currentVisitor = null;
 let displayTimer = null;
 // Connexion WebRTC
-let visitorSocketId = null;
+const visitorSockets = new Map();
 let displaySocketId = null;
 // ----------------------
 // MISE A JOUR POSITIONS
@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
     // WEBRTC IDENTIFICATION
     // ----------------------
     socket.on("visitorReady", () => {
-        visitorSocketId = socket.id;
+        visitorSockets.set(socket.id, socket.id);
         console.log("Visiteur WebRTC prêt :", socket.id);
     });
     socket.on("displayReady", () => {
@@ -72,8 +72,9 @@ io.on("connection", (socket) => {
         }
     });
     socket.on("answer", (answer) => {
-        if (visitorSocketId) {
-            io.to(visitorSocketId)
+        const visitor = currentVisitor?.id;
+        if (visitor) {
+            io.to(visitor)
                 .emit("answer", answer);
         }
     });
@@ -123,9 +124,7 @@ io.on("connection", (socket) => {
     // DECONNEXION
     // ----------------------
     socket.on("disconnect", () => {
-        if (socket.id === visitorSocketId) {
-            visitorSocketId = null;
-        }
+        visitorSockets.delete(socket.id);
         if (socket.id === displaySocketId) {
             displaySocketId = null;
         }

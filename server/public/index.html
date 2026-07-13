@@ -22,7 +22,7 @@ body{
 
     min-height:100vh;
 
-    background:#a70499;
+    background:#111111;
 
     color:white;
 
@@ -160,6 +160,8 @@ video{
 
     background:black;
 
+    display:none;
+
 }
 
 
@@ -252,12 +254,10 @@ playsinline>
 
 
 
-<script src="/socket.io/socket.io.js"></script>
-
+<script src="/socket.io/socket.js"></script>
 
 
 <script>
-
 
 
 const socket = io();
@@ -288,6 +288,9 @@ document.getElementById("camera");
 let myId = null;
 
 let joined = false;
+
+let cameraStream = null;
+
 
 
 
@@ -370,6 +373,23 @@ socket.on(
     position.innerText="";
 
 
+
+    // Affichage caméra uniquement au passage
+
+    if(cameraStream){
+
+
+        video.srcObject =
+        cameraStream;
+
+
+        video.style.display =
+        "block";
+
+
+    }
+
+
 });
 
 
@@ -402,10 +422,13 @@ async()=>{
 
 
 
+
     try{
 
 
-        const stream =
+        // Demande autorisation caméra
+
+        cameraStream =
         await navigator.mediaDevices.getUserMedia({
 
             video:{
@@ -431,11 +454,6 @@ async()=>{
         });
 
 
-
-
-
-        video.srcObject =
-        stream;
 
 
 
@@ -484,7 +502,7 @@ async()=>{
 
 
         status.innerText =
-        "Impossible d'activer la caméra";
+        "Autorisation caméra refusée";
 
 
     }
