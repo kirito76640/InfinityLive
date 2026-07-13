@@ -36,8 +36,6 @@ body{
 
     padding:20px;
 
-    transition:background 0.3s;
-
 }
 
 
@@ -166,28 +164,6 @@ video{
 
 
 
-.settings{
-
-    margin-top:20px;
-
-    font-size:14px;
-
-}
-
-
-
-input[type="color"]{
-
-    width:60px;
-
-    height:40px;
-
-    padding:0;
-
-}
-
-
-
 </style>
 
 
@@ -258,25 +234,6 @@ Participer
 
 
 
-<div class="settings">
-
-<label>
-Modifier le fond :
-</label>
-
-<br>
-
-<input 
-type="color"
-id="backgroundColor"
-value="#111111">
-
-</div>
-
-
-
-
-
 <video 
 id="camera"
 autoplay
@@ -327,10 +284,6 @@ const video =
 document.getElementById("camera");
 
 
-const backgroundColor =
-document.getElementById("backgroundColor");
-
-
 
 let myId = null;
 
@@ -352,23 +305,6 @@ socket.on(
 
 });
 
-
-
-
-
-
-
-// Changement couleur fond
-
-backgroundColor.oninput =
-()=>{
-
-
-    document.body.style.background =
-    backgroundColor.value;
-
-
-};
 
 
 
