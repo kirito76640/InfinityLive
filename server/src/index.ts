@@ -39,6 +39,11 @@ let currentVisitor: {
 let displayTimer: NodeJS.Timeout | null = null;
 
 
+// Connexion WebRTC
+let visitorSocketId: string | null = null;
+let displaySocketId: string | null = null;
+
+
 
 
 // ----------------------
@@ -82,10 +87,12 @@ app.get("/display", (req, res) => {
 
 io.on("connection", (socket) => {
 
+
     console.log(
         "Nouvelle connexion :",
         socket.id
     );
+
 
 
     socket.emit(
@@ -94,32 +101,20 @@ io.on("connection", (socket) => {
     );
 
 
+
     // ----------------------
-    // VISITEUR
+    // IDENTIFICATION WEBRTC
     // ----------------------
 
     socket.on(
-        "joinQueue",
-        (name: string) => {
+        "visitorReady",
+        () => {
 
-            const visitor = {
-
-                id: socket.id,
-
-                name: name
-
-            };
-
-            queue.push(visitor);
+            visitorSocketId = socket.id;
 
             console.log(
-                "Nouvel arrivant :",
-                name
-            );
-
-            io.emit(
-                "queueUpdated",
-                queue
+                "Visiteur WebRTC prêt :",
+                socket.id
             );
 
         }
@@ -127,23 +122,155 @@ io.on("connection", (socket) => {
 
 
 
+    socket.on(
+        "displayReady",
+        () => {
+
+            displaySocketId = socket.id;
+
+            console.log(
+                "Display WebRTC prêt :",
+                socket.id
+            );
+
+        }
+    );
+
+
+
+
+
     // ----------------------
-    // ADMIN
+    // RELAIS WEBRTC
+    // ----------------------
+
+    socket.on(
+        "offer",
+        (offer) => {
+
+
+            if(displaySocketId){
+
+                io.to(displaySocketId)
+                .emit(
+                    "offer",
+                    offer
+                );
+
+            }
+
+
+        }
+    );
+
+
+
+    socket.on(
+        "answer",
+        (answer) => {
+
+
+            if(visitorSocketId){
+
+                io.to(visitorSocketId)
+                .emit(
+                    "answer",
+                    answer
+                );
+
+            }
+
+
+        }
+    );
+
+
+
+    socket.on(
+        "iceCandidate",
+        (candidate) => {
+
+
+            socket.broadcast.emit(
+                "iceCandidate",
+                candidate
+            );
+
+
+        }
+    );
+
+
+
+
+
+    // ----------------------
+    // VISITEUR FILE
+    // ----------------------
+
+    socket.on(
+        "joinQueue",
+        (name:string)=>{
+
+
+            const visitor = {
+
+                id: socket.id,
+
+                name:name
+
+            };
+
+
+            queue.push(visitor);
+
+
+
+            console.log(
+                "Nouvel arrivant :",
+                name
+            );
+
+
+
+            io.emit(
+                "queueUpdated",
+                queue
+            );
+
+
+        }
+    );
+
+
+
+
+
+
+    // ----------------------
+    // ADMIN FAIRE PASSER
     // ----------------------
 
     socket.on(
         "callVisitor",
-        (visitorId: string) => {
+        (visitorId:string)=>{
+
 
             const visitorIndex =
-                queue.findIndex(
-                    user => user.id === visitorId
-                );
-
-            if (visitorIndex === -1) return;
+            queue.findIndex(
+                user => user.id === visitorId
+            );
 
 
-            currentVisitor = queue[visitorIndex];
+
+            if(visitorIndex === -1)
+                return;
+
+
+
+            currentVisitor =
+            queue[visitorIndex];
+
 
 
             queue.splice(
@@ -152,10 +279,12 @@ io.on("connection", (socket) => {
             );
 
 
+
             io.emit(
                 "queueUpdated",
                 queue
             );
+
 
 
             io.emit(
@@ -164,9 +293,12 @@ io.on("connection", (socket) => {
             );
 
 
-            io.to(visitorId).emit(
+
+            io.to(visitorId)
+            .emit(
                 "visitorCalled"
             );
+
 
 
             console.log(
@@ -175,31 +307,35 @@ io.on("connection", (socket) => {
             );
 
 
-            // On annule l'ancien timer s'il existe
 
-            if (displayTimer) {
+            if(displayTimer){
 
                 clearTimeout(displayTimer);
 
             }
 
 
-            // Retour automatique après 15 secondes
 
-            displayTimer = setTimeout(() => {
+            displayTimer = setTimeout(()=>{
+
 
                 currentVisitor = null;
+
 
                 io.emit(
                     "currentVisitor",
                     null
                 );
 
+
                 console.log(
                     "Display remis en attente."
                 );
 
-            }, 15000);
+
+            },10000);
+
+
 
         }
     );
@@ -208,21 +344,46 @@ io.on("connection", (socket) => {
 
 
 
+
+    // ----------------------
+    // DECONNEXION
+    // ----------------------
+
     socket.on(
         "disconnect",
-        () => {
+        ()=>{
+
+
+            if(socket.id === visitorSocketId){
+
+                visitorSocketId = null;
+
+            }
+
+
+            if(socket.id === displaySocketId){
+
+                displaySocketId = null;
+
+            }
+
+
 
             const index =
-                queue.findIndex(
-                    user => user.id === socket.id
-                );
+            queue.findIndex(
+                user => user.id === socket.id
+            );
 
-            if (index !== -1) {
+
+
+            if(index !== -1){
+
 
                 queue.splice(
                     index,
                     1
                 );
+
 
                 io.emit(
                     "queueUpdated",
@@ -231,13 +392,17 @@ io.on("connection", (socket) => {
 
             }
 
+
+
             console.log(
                 "Déconnexion :",
                 socket.id
             );
 
+
         }
     );
+
 
 });
 
@@ -253,11 +418,13 @@ io.on("connection", (socket) => {
 httpServer.listen(
     PORT,
     "0.0.0.0",
-    () => {
+    ()=>{
+
 
         console.log(
             `🚀 InfinityLive serveur démarré sur le port ${PORT}`
         );
+
 
     }
 );

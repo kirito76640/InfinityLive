@@ -23,6 +23,9 @@ const queue = [];
 let currentVisitor = null;
 // Timer du display
 let displayTimer = null;
+// Connexion WebRTC
+let visitorSocketId = null;
+let displaySocketId = null;
 // ----------------------
 // ROUTES
 // ----------------------
@@ -42,7 +45,36 @@ io.on("connection", (socket) => {
     console.log("Nouvelle connexion :", socket.id);
     socket.emit("queueUpdated", queue);
     // ----------------------
-    // VISITEUR
+    // IDENTIFICATION WEBRTC
+    // ----------------------
+    socket.on("visitorReady", () => {
+        visitorSocketId = socket.id;
+        console.log("Visiteur WebRTC prêt :", socket.id);
+    });
+    socket.on("displayReady", () => {
+        displaySocketId = socket.id;
+        console.log("Display WebRTC prêt :", socket.id);
+    });
+    // ----------------------
+    // RELAIS WEBRTC
+    // ----------------------
+    socket.on("offer", (offer) => {
+        if (displaySocketId) {
+            io.to(displaySocketId)
+                .emit("offer", offer);
+        }
+    });
+    socket.on("answer", (answer) => {
+        if (visitorSocketId) {
+            io.to(visitorSocketId)
+                .emit("answer", answer);
+        }
+    });
+    socket.on("iceCandidate", (candidate) => {
+        socket.broadcast.emit("iceCandidate", candidate);
+    });
+    // ----------------------
+    // VISITEUR FILE
     // ----------------------
     socket.on("joinQueue", (name) => {
         const visitor = {
@@ -54,30 +86,39 @@ io.on("connection", (socket) => {
         io.emit("queueUpdated", queue);
     });
     // ----------------------
-    // ADMIN
+    // ADMIN FAIRE PASSER
     // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
         if (visitorIndex === -1)
             return;
-        currentVisitor = queue[visitorIndex];
+        currentVisitor =
+            queue[visitorIndex];
         queue.splice(visitorIndex, 1);
         io.emit("queueUpdated", queue);
         io.emit("currentVisitor", currentVisitor);
-        io.to(visitorId).emit("visitorCalled");
+        io.to(visitorId)
+            .emit("visitorCalled");
         console.log("Visiteur appelé :", currentVisitor.name);
-        // On annule l'ancien timer s'il existe
         if (displayTimer) {
             clearTimeout(displayTimer);
         }
-        // Retour automatique après 15 secondes
         displayTimer = setTimeout(() => {
             currentVisitor = null;
             io.emit("currentVisitor", null);
             console.log("Display remis en attente.");
-        }, 15000);
+        }, 10000);
     });
+    // ----------------------
+    // DECONNEXION
+    // ----------------------
     socket.on("disconnect", () => {
+        if (socket.id === visitorSocketId) {
+            visitorSocketId = null;
+        }
+        if (socket.id === displaySocketId) {
+            displaySocketId = null;
+        }
         const index = queue.findIndex(user => user.id === socket.id);
         if (index !== -1) {
             queue.splice(index, 1);
