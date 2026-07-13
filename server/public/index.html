@@ -2,113 +2,338 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InfinityLive</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 30px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        video {
-            width: 90%;
-            max-width: 400px;
-            margin-top: 20px;
-            border-radius: 15px;
-        }
+<title>InfinityLive</title>
 
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            margin-top: 15px;
-        }
 
-        input {
-            padding: 12px;
-            font-size: 18px;
-        }
-    </style>
+<style>
+
+body {
+
+    font-family: Arial, sans-serif;
+    text-align:center;
+    padding:30px;
+
+}
+
+
+video {
+
+    width:90%;
+    max-width:400px;
+    margin-top:20px;
+    border-radius:15px;
+
+}
+
+
+button {
+
+    padding:15px 30px;
+    font-size:18px;
+    margin-top:15px;
+
+}
+
+
+input {
+
+    padding:12px;
+    font-size:18px;
+
+}
+
+</style>
+
+
 </head>
+
 
 <body>
 
+
 <h1>InfinityLive</h1>
 
+
 <p>
-    Entrez votre prénom pour participer :
+Entrez votre prénom pour participer :
 </p>
+
 
 <input id="name" placeholder="Votre prénom">
 
+
 <br>
 
+
 <button id="join">
-    Participer
+Participer
 </button>
+
 
 <p id="status"></p>
 
+
 <video id="camera" autoplay playsinline></video>
+
+
 
 <script src="/socket.io/socket.io.js"></script>
 
+
+
 <script>
 
-const button = document.getElementById("join");
-const nameInput = document.getElementById("name");
-const status = document.getElementById("status");
-const video = document.getElementById("camera");
 
-// Connexion Socket.IO dès le chargement de la page
 const socket = io();
 
-socket.on("visitorCalled", () => {
 
-    status.innerText =
-        "🎉 C'est votre tour ! Vous êtes appelé.";
+const button =
+document.getElementById("join");
 
-});
 
-button.onclick = async () => {
+const nameInput =
+document.getElementById("name");
 
-    const name = nameInput.value.trim();
 
-    if (!name) {
-        alert("Veuillez entrer votre prénom");
-        return;
-    }
+const status =
+document.getElementById("status");
 
-    status.innerText = "Autorisation caméra en cours...";
 
-    try {
+const video =
+document.getElementById("camera");
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-        });
 
-        video.srcObject = stream;
 
-        // Envoi du prénom au serveur
-        socket.emit("joinQueue", name);
+let peerConnection;
 
-        status.innerText =
-            "Bienvenue " + name + " ! Vous êtes dans la file d'attente.";
+let localStream;
 
-    } catch (error) {
 
-        status.innerText =
-            "Impossible d'accéder à la caméra.";
 
-        console.error(error);
-    }
+const configuration = {
+
+    iceServers:[
+
+        {
+            urls:"stun:stun.l.google.com:19302"
+        }
+
+    ]
 
 };
 
+
+
+
+
+socket.on(
+"visitorCalled",
+()=>{
+
+
+    status.innerText =
+    "🎉 C'est votre tour !";
+
+
+    startWebRTC();
+
+
+});
+
+
+
+
+
+button.onclick = async ()=>{
+
+
+    const name =
+    nameInput.value.trim();
+
+
+
+    if(!name){
+
+        alert("Veuillez entrer votre prénom");
+
+        return;
+
+    }
+
+
+
+    try{
+
+
+        localStream =
+        await navigator.mediaDevices.getUserMedia({
+
+            video:true,
+
+            audio:false
+
+        });
+
+
+
+        video.srcObject =
+        localStream;
+
+
+
+        socket.emit(
+            "joinQueue",
+            name
+        );
+
+
+
+        socket.emit(
+            "visitorReady"
+        );
+
+
+
+        status.innerText =
+        "Bienvenue " + name +
+        " ! Vous êtes dans la file d'attente.";
+
+
+
+    }
+
+    catch(error){
+
+
+        console.error(error);
+
+
+        status.innerText =
+        "Impossible d'accéder à la caméra.";
+
+    }
+
+
+};
+
+
+
+
+
+
+async function startWebRTC(){
+
+
+    peerConnection =
+    new RTCPeerConnection(
+        configuration
+    );
+
+
+
+    localStream
+    .getTracks()
+    .forEach(track=>{
+
+
+        peerConnection.addTrack(
+            track,
+            localStream
+        );
+
+
+    });
+
+
+
+
+    peerConnection.onicecandidate =
+    event=>{
+
+
+        if(event.candidate){
+
+
+            socket.emit(
+                "iceCandidate",
+                event.candidate
+            );
+
+
+        }
+
+
+    };
+
+
+
+
+    const offer =
+    await peerConnection.createOffer();
+
+
+
+    await peerConnection.setLocalDescription(
+        offer
+    );
+
+
+
+    socket.emit(
+        "offer",
+        offer
+    );
+
+
+}
+
+
+
+
+
+socket.on(
+"answer",
+async(answer)=>{
+
+
+    await peerConnection.setRemoteDescription(
+        answer
+    );
+
+
+});
+
+
+
+
+
+socket.on(
+"iceCandidate",
+async(candidate)=>{
+
+
+    if(peerConnection){
+
+
+        await peerConnection.addIceCandidate(
+            candidate
+        );
+
+
+    }
+
+
+});
+
+
+
 </script>
 
+
 </body>
+
 </html>
