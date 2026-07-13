@@ -3,164 +3,181 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import path from "path";
 
-
 const app = express();
-
 
 app.use(express.static(path.join(__dirname, "../public")));
 
-
 const httpServer = createServer(app);
 
-
 const io = new Server(httpServer, {
-
-    cors:{
-        origin:"*",
+    cors: {
+        origin: "*",
     },
-
 });
 
-
-const PORT:number = Number(process.env.PORT) || 3000;
-
+const PORT: number = Number(process.env.PORT) || 3000;
 
 
+// ----------------------
 // FILE D'ATTENTE
+// ----------------------
 
-const queue:{
-    id:string;
-    name:string;
+const queue: {
+    id: string;
+    name: string;
 }[] = [];
 
 
 
 
-// PAGES
-
-app.get("/",(req,res)=>{
-
-    res.sendFile(
-        path.join(__dirname,"../public/index.html")
-    );
-
-});
+// ----------------------
+// ROUTES DES PAGES
+// ----------------------
 
 
-app.get("/admin",(req,res)=>{
+app.get("/", (req, res) => {
 
     res.sendFile(
-        path.join(__dirname,"../public/admin.html")
+        path.join(__dirname, "../public/index.html")
     );
 
 });
 
 
 
+app.get("/admin", (req, res) => {
 
+    res.sendFile(
+        path.join(__dirname, "../public/admin.html")
+    );
+
+});
+
+
+
+app.get("/display", (req, res) => {
+
+    res.sendFile(
+        path.join(__dirname, "../public/display.html")
+    );
+
+});
+
+
+
+
+
+// ----------------------
 // SOCKET.IO
+// ----------------------
 
-io.on("connection",(socket)=>{
-
-
-    console.log("✅ Nouvelle connexion :",socket.id);
-
-
-
-    // Envoie la file actuelle au nouvel utilisateur
-
-    socket.emit("queueUpdated",queue);
-
-
-
-    // Arrivée visiteur
-
-    socket.on("joinQueue",(name:string)=>{
-
-
-        console.log("📥 joinQueue reçu :",name);
-
-
-
-        queue.push({
-
-            id:socket.id,
-            name:name,
-
-        });
-
-
-
-        console.log("📋 File actuelle :",queue);
-
-
-
-        io.emit("queueUpdated",queue);
-
-
-    });
-
-
-
-
-    // ADMIN APPELLE UN VISITEUR
-
-    socket.on("callVisitor",(id:string)=>{
-
-
-        console.log("🎬 Visiteur appelé :",id);
-
-
-
-        io.to(id).emit("visitorCalled");
-
-
-    });
-
-
-
-
-
-    // Déconnexion
-
-    socket.on("disconnect",()=>{
-
-
-        console.log("❌ Déconnexion :",socket.id);
-
-
-
-        const index = queue.findIndex(
-            (user)=>user.id === socket.id
-        );
-
-
-
-        if(index !== -1){
-
-            queue.splice(index,1);
-
-            io.emit("queueUpdated",queue);
-
-        }
-
-
-    });
-
-
-
-});
-
-
-
-
-
-httpServer.listen(PORT,"0.0.0.0",()=>{
+io.on("connection", (socket) => {
 
 
     console.log(
-        `🚀 InfinityLive serveur démarré sur le port ${PORT}`
+        "Nouvelle connexion :",
+        socket.id
     );
 
 
+
+    socket.on(
+        "joinQueue",
+        (name: string) => {
+
+
+            queue.push({
+
+                id: socket.id,
+
+                name: name
+
+            });
+
+
+
+            console.log(
+                "Nouvel arrivant :",
+                name
+            );
+
+
+
+            io.emit(
+                "queueUpdated",
+                queue
+            );
+
+
+        }
+    );
+
+
+
+
+
+    socket.on(
+        "disconnect",
+        () => {
+
+
+            const index =
+            queue.findIndex(
+                (user) => user.id === socket.id
+            );
+
+
+
+            if(index !== -1){
+
+
+                queue.splice(
+                    index,
+                    1
+                );
+
+
+
+                io.emit(
+                    "queueUpdated",
+                    queue
+                );
+
+
+            }
+
+
+
+            console.log(
+                "Déconnexion :",
+                socket.id
+            );
+
+
+        }
+    );
+
+
+
 });
+
+
+
+
+
+
+// ----------------------
+// DEMARRAGE SERVEUR
+// ----------------------
+
+httpServer.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            `InfinityLive serveur démarré sur le port ${PORT}`
+        );
+
+    }
+);
