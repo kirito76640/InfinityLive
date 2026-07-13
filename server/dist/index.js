@@ -21,6 +21,8 @@ const PORT = Number(process.env.PORT) || 3000;
 // ----------------------
 const queue = [];
 let currentVisitor = null;
+// Timer du display
+let displayTimer = null;
 // ----------------------
 // ROUTES
 // ----------------------
@@ -38,9 +40,10 @@ app.get("/display", (req, res) => {
 // ----------------------
 io.on("connection", (socket) => {
     console.log("Nouvelle connexion :", socket.id);
-    // Envoi de la file actuelle au nouvel admin
     socket.emit("queueUpdated", queue);
-    // Visiteur rejoint
+    // ----------------------
+    // VISITEUR
+    // ----------------------
     socket.on("joinQueue", (name) => {
         const visitor = {
             id: socket.id,
@@ -50,23 +53,29 @@ io.on("connection", (socket) => {
         console.log("Nouvel arrivant :", name);
         io.emit("queueUpdated", queue);
     });
-    // ADMIN : faire passer un visiteur
+    // ----------------------
+    // ADMIN
+    // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
-        if (visitorIndex !== -1) {
-            currentVisitor =
-                queue[visitorIndex];
-            queue.splice(visitorIndex, 1);
-            console.log("Visiteur appelé :", currentVisitor.name);
-            io.emit("queueUpdated", queue);
-            io.emit("currentVisitor", currentVisitor);
-            io.to(visitorId).emit("visitorCalled");
+        if (visitorIndex === -1)
+            return;
+        currentVisitor = queue[visitorIndex];
+        queue.splice(visitorIndex, 1);
+        io.emit("queueUpdated", queue);
+        io.emit("currentVisitor", currentVisitor);
+        io.to(visitorId).emit("visitorCalled");
+        console.log("Visiteur appelé :", currentVisitor.name);
+        // On annule l'ancien timer s'il existe
+        if (displayTimer) {
+            clearTimeout(displayTimer);
         }
-    });
-    // ADMIN : terminer
-    socket.on("finishVisitor", () => {
-        currentVisitor = null;
-        io.emit("currentVisitor", null);
+        // Retour automatique après 15 secondes
+        displayTimer = setTimeout(() => {
+            currentVisitor = null;
+            io.emit("currentVisitor", null);
+            console.log("Display remis en attente.");
+        }, 15000);
     });
     socket.on("disconnect", () => {
         const index = queue.findIndex(user => user.id === socket.id);
@@ -81,5 +90,5 @@ io.on("connection", (socket) => {
 // DEMARRAGE
 // ----------------------
 httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`InfinityLive serveur démarré sur le port ${PORT}`);
+    console.log(`🚀 InfinityLive serveur démarré sur le port ${PORT}`);
 });

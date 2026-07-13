@@ -35,12 +35,15 @@ let currentVisitor: {
 } | null = null;
 
 
+// Timer du display
+let displayTimer: NodeJS.Timeout | null = null;
+
+
 
 
 // ----------------------
 // ROUTES
 // ----------------------
-
 
 app.get("/", (req, res) => {
 
@@ -79,15 +82,11 @@ app.get("/display", (req, res) => {
 
 io.on("connection", (socket) => {
 
-
     console.log(
         "Nouvelle connexion :",
         socket.id
     );
 
-
-
-    // Envoi de la file actuelle au nouvel admin
 
     socket.emit(
         "queueUpdated",
@@ -95,33 +94,62 @@ io.on("connection", (socket) => {
     );
 
 
-
-
-    // Visiteur rejoint
+    // ----------------------
+    // VISITEUR
+    // ----------------------
 
     socket.on(
         "joinQueue",
-        (name:string)=>{
-
+        (name: string) => {
 
             const visitor = {
 
                 id: socket.id,
 
-                name:name
+                name: name
 
             };
 
-
             queue.push(visitor);
-
-
 
             console.log(
                 "Nouvel arrivant :",
                 name
             );
 
+            io.emit(
+                "queueUpdated",
+                queue
+            );
+
+        }
+    );
+
+
+
+    // ----------------------
+    // ADMIN
+    // ----------------------
+
+    socket.on(
+        "callVisitor",
+        (visitorId: string) => {
+
+            const visitorIndex =
+                queue.findIndex(
+                    user => user.id === visitorId
+                );
+
+            if (visitorIndex === -1) return;
+
+
+            currentVisitor = queue[visitorIndex];
+
+
+            queue.splice(
+                visitorIndex,
+                1
+            );
 
 
             io.emit(
@@ -130,98 +158,51 @@ io.on("connection", (socket) => {
             );
 
 
-        }
-    );
-
-
-
-
-
-    // ADMIN : faire passer un visiteur
-
-    socket.on(
-        "callVisitor",
-        (visitorId:string)=>{
-
-
-            const visitorIndex =
-            queue.findIndex(
-                user => user.id === visitorId
+            io.emit(
+                "currentVisitor",
+                currentVisitor
             );
 
 
-
-            if(visitorIndex !== -1){
-
-
-                currentVisitor =
-                queue[visitorIndex];
+            io.to(visitorId).emit(
+                "visitorCalled"
+            );
 
 
-
-                queue.splice(
-                    visitorIndex,
-                    1
-                );
-
+            console.log(
+                "Visiteur appelé :",
+                currentVisitor.name
+            );
 
 
-                console.log(
-                    "Visiteur appelé :",
-                    currentVisitor.name
-                );
+            // On annule l'ancien timer s'il existe
 
+            if (displayTimer) {
 
-
-                io.emit(
-                    "queueUpdated",
-                    queue
-                );
-
-
-
-                io.emit(
-                    "currentVisitor",
-                    currentVisitor
-                );
-
-
-
-                io.to(visitorId).emit(
-                    "visitorCalled"
-                );
-
+                clearTimeout(displayTimer);
 
             }
 
 
-        }
-    );
+            // Retour automatique après 15 secondes
 
+            displayTimer = setTimeout(() => {
 
+                currentVisitor = null;
 
+                io.emit(
+                    "currentVisitor",
+                    null
+                );
 
+                console.log(
+                    "Display remis en attente."
+                );
 
-    // ADMIN : terminer
-
-    socket.on(
-        "finishVisitor",
-        ()=>{
-
-
-            currentVisitor = null;
-
-
-
-            io.emit(
-                "currentVisitor",
-                null
-            );
-
+            }, 15000);
 
         }
     );
-
 
 
 
@@ -229,46 +210,34 @@ io.on("connection", (socket) => {
 
     socket.on(
         "disconnect",
-        ()=>{
-
+        () => {
 
             const index =
-            queue.findIndex(
-                user => user.id === socket.id
-            );
+                queue.findIndex(
+                    user => user.id === socket.id
+                );
 
-
-
-            if(index !== -1){
-
+            if (index !== -1) {
 
                 queue.splice(
                     index,
                     1
                 );
 
-
-
                 io.emit(
                     "queueUpdated",
                     queue
                 );
 
-
             }
-
-
 
             console.log(
                 "Déconnexion :",
                 socket.id
             );
 
-
         }
     );
-
-
 
 });
 
@@ -284,10 +253,10 @@ io.on("connection", (socket) => {
 httpServer.listen(
     PORT,
     "0.0.0.0",
-    ()=>{
+    () => {
 
         console.log(
-            `InfinityLive serveur démarré sur le port ${PORT}`
+            `🚀 InfinityLive serveur démarré sur le port ${PORT}`
         );
 
     }
