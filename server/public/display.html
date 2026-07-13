@@ -50,7 +50,7 @@ body {
 
     color:white;
 
-    z-index:3;
+    z-index:5;
 
 }
 
@@ -81,9 +81,7 @@ video {
 <body>
 
 
-<div id="message">
-</div>
-
+<div id="message"></div>
 
 
 <video id="remoteVideo" autoplay playsinline></video>
@@ -92,6 +90,7 @@ video {
 
 
 <script src="/socket.io/socket.io.js"></script>
+
 
 
 <script>
@@ -110,13 +109,12 @@ document.getElementById("remoteVideo");
 
 
 
-let peerConnection;
-
-let currentUser = null;
+let peerConnection = null;
 
 
 
 const configuration = {
+
 
     iceServers:[
 
@@ -127,8 +125,8 @@ const configuration = {
 
     ]
 
-};
 
+};
 
 
 
@@ -143,22 +141,20 @@ socket.emit(
 
 
 
-
-
-function showMessage(text,time){
-
-
-    message.innerText = text;
-
-
-    message.style.display="block";
-
-
-    remoteVideo.style.display="none";
-
+function showMessage(text,duration){
 
 
     return new Promise(resolve=>{
+
+
+        message.innerText = text;
+
+
+        message.style.display="block";
+
+
+        remoteVideo.style.display="none";
+
 
 
         setTimeout(()=>{
@@ -167,7 +163,8 @@ function showMessage(text,time){
             resolve();
 
 
-        },time);
+        },duration);
+
 
 
     });
@@ -181,25 +178,18 @@ function showMessage(text,time){
 
 
 
-async function startWelcome(user){
+async function welcomeVisitor(user){
 
-
-    async function startWelcome(user){
 
 
     await showMessage(
+
         "Infinity te souhaite la bienvenue " + user.name,
+
         5000
+
     );
 
-
-    message.style.display="none";
-
-
-}
-
-
-    message.style.display="none";
 
 
 }
@@ -221,31 +211,32 @@ async(user)=>{
     if(user){
 
 
-        currentUser = user;
-
-
-        await startWelcome(user);
+        await welcomeVisitor(user);
 
 
 
     }
-
     else{
 
 
-        remoteVideo.style.display="none";
-
-
         await showMessage(
+
             "Infinity te remercie !",
+
             2000
+
         );
+
 
 
         await showMessage(
+
             "Au suivant !",
+
             2000
+
         );
+
 
 
     }
@@ -265,6 +256,7 @@ async(user)=>{
 socket.on(
 "offer",
 async(offer)=>{
+
 
 
     peerConnection =
@@ -293,7 +285,6 @@ async(offer)=>{
 
 
     };
-
 
 
 
@@ -334,9 +325,9 @@ async(offer)=>{
 
 
 
+
     const answer =
     await peerConnection.createAnswer();
-
 
 
 
@@ -363,7 +354,6 @@ async(offer)=>{
 
 
 
-
 socket.on(
 "iceCandidate",
 async(candidate)=>{
@@ -381,8 +371,6 @@ async(candidate)=>{
 
 
 });
-
-
 
 
 
