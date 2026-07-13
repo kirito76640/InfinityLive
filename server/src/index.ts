@@ -29,19 +29,27 @@ const queue: {
 }[] = [];
 
 
+
 let currentVisitor: {
     id: string;
     name: string;
 } | null = null;
 
 
-// Timer du display
+
+// Timer display
 let displayTimer: NodeJS.Timeout | null = null;
 
 
-// Connexion WebRTC
+
+// ----------------------
+// WEBRTC CONNECTIONS
+// ----------------------
+
 let visitorSocketId: string | null = null;
+
 let displaySocketId: string | null = null;
+
 
 
 
@@ -59,6 +67,7 @@ app.get("/", (req, res) => {
 });
 
 
+
 app.get("/admin", (req, res) => {
 
     res.sendFile(
@@ -68,6 +77,7 @@ app.get("/admin", (req, res) => {
 });
 
 
+
 app.get("/display", (req, res) => {
 
     res.sendFile(
@@ -75,7 +85,6 @@ app.get("/display", (req, res) => {
     );
 
 });
-
 
 
 
@@ -102,20 +111,25 @@ io.on("connection", (socket) => {
 
 
 
+
+
     // ----------------------
     // IDENTIFICATION WEBRTC
     // ----------------------
 
+
     socket.on(
         "visitorReady",
-        () => {
+        ()=>{
 
             visitorSocketId = socket.id;
+
 
             console.log(
                 "Visiteur WebRTC prêt :",
                 socket.id
             );
+
 
         }
     );
@@ -124,14 +138,17 @@ io.on("connection", (socket) => {
 
     socket.on(
         "displayReady",
-        () => {
+        ()=>{
+
 
             displaySocketId = socket.id;
+
 
             console.log(
                 "Display WebRTC prêt :",
                 socket.id
             );
+
 
         }
     );
@@ -141,21 +158,24 @@ io.on("connection", (socket) => {
 
 
     // ----------------------
-    // RELAIS WEBRTC
+    // SIGNALISATION WEBRTC
     // ----------------------
+
 
     socket.on(
         "offer",
-        (offer) => {
+        (offer)=>{
 
 
             if(displaySocketId){
+
 
                 io.to(displaySocketId)
                 .emit(
                     "offer",
                     offer
                 );
+
 
             }
 
@@ -167,16 +187,18 @@ io.on("connection", (socket) => {
 
     socket.on(
         "answer",
-        (answer) => {
+        (answer)=>{
 
 
             if(visitorSocketId){
+
 
                 io.to(visitorSocketId)
                 .emit(
                     "answer",
                     answer
                 );
+
 
             }
 
@@ -188,93 +210,234 @@ io.on("connection", (socket) => {
 
     socket.on(
         "iceCandidate",
-        (candidate) => {
+        (candidate)=>{
 
 
-            socket.broadcast.emit(
-                "iceCandidate",
-                candidate
-            );
+            if(socket.id === visitorSocketId && displaySocketId){
+
+
+                io.to(displaySocketId)
+                .emit(
+                    "iceCandidate",
+                    candidate
+                );
+
+
+            }
+
+
+
+            if(socket.id === displaySocketId && visitorSocketId){
+
+
+                io.to(visitorSocketId)
+                .emit(
+                    "iceCandidate",
+                    candidate
+                );
+
+
+            }
 
 
         }
     );
+    
+// ----------------------
+// VISITEUR REJOINT LA FILE
+// ----------------------
+
+socket.on(
+    "joinQueue",
+    (name:string)=>{
+
+
+        const visitor = {
+
+            id: socket.id,
+
+            name:name
+
+        };
+
+
+
+        queue.push(visitor);
+
+
+
+        console.log(
+            "Nouvel arrivant :",
+            name
+        );
+
+
+
+        io.emit(
+            "queueUpdated",
+            queue
+        );
+
+
+    }
+);
 
 
 
 
 
-    // ----------------------
-    // VISITEUR FILE
-    // ----------------------
-
-    socket.on(
-        "joinQueue",
-        (name:string)=>{
 
 
-            const visitor = {
+// ----------------------
+// ADMIN - FAIRE PASSER
+// ----------------------
 
-                id: socket.id,
-
-                name:name
-
-            };
+socket.on(
+    "callVisitor",
+    (visitorId:string)=>{
 
 
-            queue.push(visitor);
+        const visitorIndex =
+        queue.findIndex(
+            user => user.id === visitorId
+        );
 
 
 
-            console.log(
-                "Nouvel arrivant :",
-                name
-            );
+        if(visitorIndex === -1)
+            return;
+
+
+
+
+        currentVisitor =
+        queue[visitorIndex];
+
+
+
+        // On mémorise le visiteur appelé
+        visitorSocketId = visitorId;
+
+
+
+        queue.splice(
+            visitorIndex,
+            1
+        );
+
+
+
+        io.emit(
+            "queueUpdated",
+            queue
+        );
+
+
+
+        io.emit(
+            "currentVisitor",
+            currentVisitor
+        );
+
+
+
+        io.to(visitorId)
+        .emit(
+            "visitorCalled"
+        );
+
+
+
+        console.log(
+            "Visiteur appelé :",
+            currentVisitor.name
+        );
+
+
+
+
+        if(displayTimer){
+
+            clearTimeout(displayTimer);
+
+        }
+
+
+
+
+        displayTimer =
+        setTimeout(()=>{
+
+
+            currentVisitor = null;
 
 
 
             io.emit(
-                "queueUpdated",
-                queue
+                "currentVisitor",
+                null
             );
 
+
+
+            console.log(
+                "Display remis en attente."
+            );
+
+
+
+        },10000);
+
+
+
+    }
+);
+
+
+
+
+
+
+
+
+// ----------------------
+// DECONNEXION
+// ----------------------
+
+socket.on(
+    "disconnect",
+    ()=>{
+
+
+        if(socket.id === visitorSocketId){
+
+            visitorSocketId = null;
 
         }
-    );
+
+
+
+        if(socket.id === displaySocketId){
+
+            displaySocketId = null;
+
+        }
 
 
 
 
-
-
-    // ----------------------
-    // ADMIN FAIRE PASSER
-    // ----------------------
-
-    socket.on(
-        "callVisitor",
-        (visitorId:string)=>{
-
-
-            const visitorIndex =
-            queue.findIndex(
-                user => user.id === visitorId
-            );
+        const index =
+        queue.findIndex(
+            user => user.id === socket.id
+        );
 
 
 
-            if(visitorIndex === -1)
-                return;
-
-
-
-            currentVisitor =
-            queue[visitorIndex];
-
+        if(index !== -1){
 
 
             queue.splice(
-                visitorIndex,
+                index,
                 1
             );
 
@@ -286,125 +449,25 @@ io.on("connection", (socket) => {
             );
 
 
-
-            io.emit(
-                "currentVisitor",
-                currentVisitor
-            );
-
-
-
-            io.to(visitorId)
-            .emit(
-                "visitorCalled"
-            );
-
-
-
-            console.log(
-                "Visiteur appelé :",
-                currentVisitor.name
-            );
-
-
-
-            if(displayTimer){
-
-                clearTimeout(displayTimer);
-
-            }
-
-
-
-            displayTimer = setTimeout(()=>{
-
-
-                currentVisitor = null;
-
-
-                io.emit(
-                    "currentVisitor",
-                    null
-                );
-
-
-                console.log(
-                    "Display remis en attente."
-                );
-
-
-            },10000);
-
-
-
         }
-    );
 
 
 
 
-
-
-    // ----------------------
-    // DECONNEXION
-    // ----------------------
-
-    socket.on(
-        "disconnect",
-        ()=>{
-
-
-            if(socket.id === visitorSocketId){
-
-                visitorSocketId = null;
-
-            }
-
-
-            if(socket.id === displaySocketId){
-
-                displaySocketId = null;
-
-            }
+        console.log(
+            "Déconnexion :",
+            socket.id
+        );
 
 
 
-            const index =
-            queue.findIndex(
-                user => user.id === socket.id
-            );
+    }
+);
 
-
-
-            if(index !== -1){
-
-
-                queue.splice(
-                    index,
-                    1
-                );
-
-
-                io.emit(
-                    "queueUpdated",
-                    queue
-                );
-
-            }
-
-
-
-            console.log(
-                "Déconnexion :",
-                socket.id
-            );
-
-
-        }
-    );
 
 
 });
+
 
 
 

@@ -21,9 +21,11 @@ const PORT = Number(process.env.PORT) || 3000;
 // ----------------------
 const queue = [];
 let currentVisitor = null;
-// Timer du display
+// Timer display
 let displayTimer = null;
-// Connexion WebRTC
+// ----------------------
+// WEBRTC CONNECTIONS
+// ----------------------
 let visitorSocketId = null;
 let displaySocketId = null;
 // ----------------------
@@ -56,7 +58,7 @@ io.on("connection", (socket) => {
         console.log("Display WebRTC prêt :", socket.id);
     });
     // ----------------------
-    // RELAIS WEBRTC
+    // SIGNALISATION WEBRTC
     // ----------------------
     socket.on("offer", (offer) => {
         if (displaySocketId) {
@@ -71,10 +73,17 @@ io.on("connection", (socket) => {
         }
     });
     socket.on("iceCandidate", (candidate) => {
-        socket.broadcast.emit("iceCandidate", candidate);
+        if (socket.id === visitorSocketId && displaySocketId) {
+            io.to(displaySocketId)
+                .emit("iceCandidate", candidate);
+        }
+        if (socket.id === displaySocketId && visitorSocketId) {
+            io.to(visitorSocketId)
+                .emit("iceCandidate", candidate);
+        }
     });
     // ----------------------
-    // VISITEUR FILE
+    // VISITEUR REJOINT LA FILE
     // ----------------------
     socket.on("joinQueue", (name) => {
         const visitor = {
@@ -86,7 +95,7 @@ io.on("connection", (socket) => {
         io.emit("queueUpdated", queue);
     });
     // ----------------------
-    // ADMIN FAIRE PASSER
+    // ADMIN - FAIRE PASSER
     // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
@@ -94,6 +103,8 @@ io.on("connection", (socket) => {
             return;
         currentVisitor =
             queue[visitorIndex];
+        // On mémorise le visiteur appelé
+        visitorSocketId = visitorId;
         queue.splice(visitorIndex, 1);
         io.emit("queueUpdated", queue);
         io.emit("currentVisitor", currentVisitor);
@@ -103,11 +114,12 @@ io.on("connection", (socket) => {
         if (displayTimer) {
             clearTimeout(displayTimer);
         }
-        displayTimer = setTimeout(() => {
-            currentVisitor = null;
-            io.emit("currentVisitor", null);
-            console.log("Display remis en attente.");
-        }, 10000);
+        displayTimer =
+            setTimeout(() => {
+                currentVisitor = null;
+                io.emit("currentVisitor", null);
+                console.log("Display remis en attente.");
+            }, 10000);
     });
     // ----------------------
     // DECONNEXION
