@@ -165,7 +165,6 @@ video{
 }
 
 
-
 </style>
 
 
@@ -180,7 +179,7 @@ video{
 
 
 
-<img 
+<img
 class="logo"
 src="/images/logo.png"
 alt="InfinityLive">
@@ -206,7 +205,7 @@ Entrez votre prénom pour participer
 
 
 
-<input 
+<input
 id="name"
 placeholder="Votre prénom">
 
@@ -236,7 +235,7 @@ Participer
 
 
 
-<video 
+<video
 id="camera"
 autoplay
 playsinline>
@@ -254,7 +253,7 @@ playsinline>
 
 
 
-<script src="/socket.io/socket.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
 
 <script>
@@ -285,8 +284,6 @@ document.getElementById("camera");
 
 
 
-let myId = null;
-
 let joined = false;
 
 let cameraStream = null;
@@ -297,56 +294,18 @@ let cameraStream = null;
 
 
 
+// Mise à jour position file
 
 socket.on(
-"connect",
-()=>{
+"queuePosition",
+(pos)=>{
 
 
-    myId = socket.id;
-
-
-});
-
-
-
-
-
-
-
-
-socket.on(
-"queueUpdated",
-(queue)=>{
-
-
-    if(!joined)
-        return;
-
-
-
-    const index =
-    queue.findIndex(
-        user=>user.id===myId
-    );
-
-
-
-    if(index !== -1){
+    if(joined){
 
 
         position.innerText =
-        "Position dans la file : "
-        +(index+1);
-
-
-    }
-
-    else{
-
-
-        position.innerText =
-        "Votre passage arrive";
+        "Position dans la file : " + pos;
 
 
     }
@@ -360,6 +319,7 @@ socket.on(
 
 
 
+// Quand c'est son tour
 
 socket.on(
 "visitorCalled",
@@ -370,17 +330,17 @@ socket.on(
     "🎉 C'est votre tour !";
 
 
-    position.innerText="";
+
+    position.innerText = "";
 
 
-
-    // Affichage caméra uniquement au passage
 
     if(cameraStream){
 
 
         video.srcObject =
         cameraStream;
+
 
 
         video.style.display =
@@ -408,6 +368,7 @@ async()=>{
 
 
 
+
     if(!name){
 
         alert(
@@ -417,6 +378,7 @@ async()=>{
         return;
 
     }
+
 
 
 
@@ -433,19 +395,15 @@ async()=>{
 
             video:{
 
+                facingMode:"user",
+
                 width:{
                     ideal:1280
                 },
 
                 height:{
                     ideal:720
-                },
-
-                frameRate:{
-                    ideal:30
-                },
-
-                facingMode:"user"
+                }
 
             },
 
@@ -458,12 +416,17 @@ async()=>{
 
 
 
+
+        // On rejoint la file
+
         socket.emit(
             "joinQueue",
             name
         );
 
 
+
+        // Prépare WebRTC
 
         socket.emit(
             "visitorReady"
@@ -472,7 +435,10 @@ async()=>{
 
 
 
+
+
         joined=true;
+
 
 
 
@@ -483,6 +449,7 @@ async()=>{
 
         nameInput.style.display =
         "none";
+
 
 
 
@@ -499,6 +466,7 @@ async()=>{
 
 
         console.error(error);
+
 
 
         status.innerText =
