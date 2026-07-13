@@ -40,12 +40,19 @@ let currentVisitor: {
 let displayTimer: NodeJS.Timeout | null = null;
 
 
+// MODE AUTOMATIQUE
+
+let autoMode = false;
+
+
 
 // Connexion WebRTC
 
-const visitorSockets = new Map<string,string>();
+let visitorSocketId: string | null = null;
 
 let displaySocketId: string | null = null;
+
+
 
 
 
@@ -71,6 +78,137 @@ function updateQueuePositions() {
 
 
 }
+
+
+
+
+
+
+
+// ----------------------
+// PASSAGE AUTOMATIQUE
+// ----------------------
+
+function callNextVisitor(){
+
+
+    if(!autoMode)
+        return;
+
+
+
+    if(currentVisitor)
+        return;
+
+
+
+    if(queue.length === 0)
+        return;
+
+
+
+
+
+    const visitor =
+    queue.shift();
+
+
+
+    if(!visitor)
+        return;
+
+
+
+
+
+    currentVisitor = visitor;
+
+
+
+
+
+    io.emit(
+        "queueUpdated",
+        queue
+    );
+
+
+
+    updateQueuePositions();
+
+
+
+
+
+    io.emit(
+        "currentVisitor",
+        currentVisitor
+    );
+
+
+
+
+
+    io.to(visitor.id)
+    .emit(
+        "visitorCalled"
+    );
+
+
+
+
+
+    console.log(
+        "Passage automatique :",
+        visitor.name
+    );
+
+
+
+
+
+    if(displayTimer){
+
+        clearTimeout(displayTimer);
+
+    }
+
+
+
+
+
+
+    displayTimer =
+    setTimeout(()=>{
+
+
+        currentVisitor = null;
+
+
+
+        io.emit(
+            "currentVisitor",
+            null
+        );
+
+
+
+        console.log(
+            "Fin passage automatique"
+        );
+
+
+
+        callNextVisitor();
+
+
+
+    },10000);
+
+
+
+}
+
 
 
 
@@ -114,15 +252,6 @@ app.get("/display",(req,res)=>{
 
 
 });
-
-
-
-
-
-
-
-
-
 // ----------------------
 // SOCKET.IO
 // ----------------------
@@ -146,6 +275,55 @@ io.on("connection",(socket)=>{
 
 
 
+    // ----------------------
+    // START / STOP AUTOMATIQUE
+    // ----------------------
+
+
+    socket.on(
+        "startAuto",
+        ()=>{
+
+
+            autoMode = true;
+
+
+            console.log(
+                "Mode automatique activé"
+            );
+
+
+            callNextVisitor();
+
+
+        }
+    );
+
+
+
+
+    socket.on(
+        "stopAuto",
+        ()=>{
+
+
+            autoMode = false;
+
+
+            console.log(
+                "Mode automatique arrêté"
+            );
+
+
+        }
+    );
+
+
+
+
+
+
+
 
     // ----------------------
     // WEBRTC IDENTIFICATION
@@ -157,10 +335,7 @@ io.on("connection",(socket)=>{
         ()=>{
 
 
-            visitorSockets.set(
-                socket.id,
-                socket.id
-            );
+            visitorSocketId = socket.id;
 
 
             console.log(
@@ -232,21 +407,15 @@ io.on("connection",(socket)=>{
 
 
 
-
     socket.on(
         "answer",
         (answer)=>{
 
 
-            const visitor =
-            currentVisitor?.id;
+            if(visitorSocketId){
 
 
-
-            if(visitor){
-
-
-                io.to(visitor)
+                io.to(visitorSocketId)
                 .emit(
                     "answer",
                     answer
@@ -258,8 +427,6 @@ io.on("connection",(socket)=>{
 
         }
     );
-
-
 
 
 
@@ -315,6 +482,7 @@ io.on("connection",(socket)=>{
 
 
 
+
             console.log(
                 "Nouvel arrivant :",
                 name
@@ -331,7 +499,13 @@ io.on("connection",(socket)=>{
 
 
 
+
             updateQueuePositions();
+
+
+
+
+            callNextVisitor();
 
 
 
@@ -350,9 +524,8 @@ io.on("connection",(socket)=>{
 
 
     // ----------------------
-    // ADMIN FAIRE PASSER
+    // ADMIN MANUEL (gardé)
     // ----------------------
-
 
     socket.on(
         "callVisitor",
@@ -373,10 +546,8 @@ io.on("connection",(socket)=>{
 
 
 
-
             currentVisitor =
             queue[visitorIndex];
-
 
 
 
@@ -391,9 +562,7 @@ io.on("connection",(socket)=>{
 
 
 
-
             updateQueuePositions();
-
 
 
 
@@ -408,13 +577,10 @@ io.on("connection",(socket)=>{
 
 
 
-
             io.emit(
                 "currentVisitor",
                 currentVisitor
             );
-
-
 
 
 
@@ -429,15 +595,10 @@ io.on("connection",(socket)=>{
 
 
 
-
-
             console.log(
                 "Visiteur appelé :",
                 currentVisitor.name
             );
-
-
-
 
 
 
@@ -450,8 +611,6 @@ io.on("connection",(socket)=>{
 
 
             }
-
-
 
 
 
@@ -473,114 +632,89 @@ io.on("connection",(socket)=>{
 
 
 
-                console.log(
-                    "Display remis en attente."
-                );
-
-
-
             },10000);
 
 
 
         }
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
     // ----------------------
-    // DECONNEXION
-    // ----------------------
+// DECONNEXION
+// ----------------------
+
+socket.on(
+    "disconnect",
+    ()=>{
 
 
-    socket.on(
-        "disconnect",
-        ()=>{
+        if(socket.id===visitorSocketId){
+
+            visitorSocketId=null;
+
+        }
 
 
-            visitorSockets.delete(
-                socket.id
+
+        if(socket.id===displaySocketId){
+
+            displaySocketId=null;
+
+        }
+
+
+
+
+
+
+        const index =
+        queue.findIndex(
+            user=>user.id===socket.id
+        );
+
+
+
+
+
+
+        if(index!==-1){
+
+
+
+            queue.splice(
+                index,
+                1
             );
 
 
 
-            if(socket.id===displaySocketId){
-
-                displaySocketId=null;
-
-            }
 
 
-
-
-
-
-
-
-            const index =
-            queue.findIndex(
-                user=>user.id===socket.id
+            io.emit(
+                "queueUpdated",
+                queue
             );
 
 
 
-
-
-
-
-            if(index!==-1){
-
-
-
-                queue.splice(
-                    index,
-                    1
-                );
-
-
-
-
-
-
-                io.emit(
-                    "queueUpdated",
-                    queue
-                );
-
-
-
-                updateQueuePositions();
-
-
-
-            }
-
-
-
-
-
-
-
-            console.log(
-                "Déconnexion :",
-                socket.id
-            );
+            updateQueuePositions();
 
 
 
         }
-    );
 
+
+
+
+
+        console.log(
+            "Déconnexion :",
+            socket.id
+        );
+
+
+
+    }
+);
 
 
 
