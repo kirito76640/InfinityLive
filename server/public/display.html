@@ -205,6 +205,17 @@ async(user)=>{
 
 
     }
+    remoteVideo.srcObject = null;
+
+remoteVideo.style.display = "none";
+
+if(peerConnection){
+
+    peerConnection.close();
+
+    peerConnection = null;
+
+}
     else{
 
 
@@ -256,98 +267,63 @@ socket.on(
 "offer",
 async(offer)=>{
 
+    // Ferme l'ancienne connexion
+    if(peerConnection){
 
+        peerConnection.close();
+
+        peerConnection = null;
+
+    }
 
     peerConnection =
     new RTCPeerConnection(
         configuration
     );
 
-
-
-
-
     peerConnection.onicecandidate =
     event=>{
 
-
         if(event.candidate){
-
 
             socket.emit(
                 "iceCandidate",
                 event.candidate
             );
 
-
         }
 
-
     };
-
-
-
-
-
-
-
 
     peerConnection.ontrack =
     event=>{
 
-
         remoteVideo.srcObject =
         event.streams[0];
-
-
 
         remoteVideo.style.display =
         "block";
 
-
-
         message.style.display =
         "none";
 
-
-
     };
-
-
-
-
-
-
-
 
     await peerConnection.setRemoteDescription(
         offer
     );
 
-
-
-
-
-
     const answer =
     await peerConnection.createAnswer();
-
-
-
 
     await peerConnection.setLocalDescription(
         answer
     );
 
-
-
-
     socket.emit(
         "answer",
         answer
     );
-
-
 
 });
 
