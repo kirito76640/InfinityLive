@@ -32,19 +32,25 @@ body {
     justify-content:center;
     align-items:center;
 
+    text-align:center;
+
 }
 
 
 
-#status {
+#message {
 
     position:absolute;
 
+    width:90%;
+
     font-size:70px;
 
-    color:#777;
+    font-weight:bold;
 
-    z-index:2;
+    color:white;
+
+    z-index:3;
 
 }
 
@@ -75,9 +81,7 @@ video {
 <body>
 
 
-
-<div id="status">
-En attente
+<div id="message">
 </div>
 
 
@@ -87,10 +91,7 @@ En attente
 
 
 
-
-
 <script src="/socket.io/socket.io.js"></script>
-
 
 
 <script>
@@ -100,8 +101,8 @@ const socket = io();
 
 
 
-const status =
-document.getElementById("status");
+const message =
+document.getElementById("message");
 
 
 const remoteVideo =
@@ -110,6 +111,8 @@ document.getElementById("remoteVideo");
 
 
 let peerConnection;
+
+let currentUser = null;
 
 
 
@@ -130,6 +133,7 @@ const configuration = {
 
 
 
+
 socket.emit(
     "displayReady"
 );
@@ -140,15 +144,79 @@ socket.emit(
 
 
 
+
+function showMessage(text,time){
+
+
+    message.innerText = text;
+
+
+    message.style.display="block";
+
+
+    remoteVideo.style.display="none";
+
+
+
+    return new Promise(resolve=>{
+
+
+        setTimeout(()=>{
+
+
+            resolve();
+
+
+        },time);
+
+
+    });
+
+
+}
+
+
+
+
+
+
+
+async function startWelcome(user){
+
+
+    await showMessage(
+        "Infinity te souhaite la bienvenue " + user.name,
+        2000
+    );
+
+
+    message.style.display="none";
+
+
+}
+
+
+
+
+
+
+
+
+
 socket.on(
 "currentVisitor",
-(user)=>{
+async(user)=>{
+
 
 
     if(user){
 
 
-        status.style.display="none";
+        currentUser = user;
+
+
+        await startWelcome(user);
+
 
 
     }
@@ -159,14 +227,20 @@ socket.on(
         remoteVideo.style.display="none";
 
 
-        status.style.display="block";
+        await showMessage(
+            "Infinity te remercie !",
+            2000
+        );
 
 
-        status.innerText =
-        "En attente";
+        await showMessage(
+            "Au suivant !",
+            2000
+        );
 
 
     }
+
 
 
 });
@@ -216,6 +290,7 @@ async(offer)=>{
 
 
 
+
     peerConnection.ontrack =
     event=>{
 
@@ -230,7 +305,7 @@ async(offer)=>{
 
 
 
-        status.style.display =
+        message.style.display =
         "none";
 
 
@@ -242,10 +317,10 @@ async(offer)=>{
 
 
 
+
     await peerConnection.setRemoteDescription(
         offer
     );
-
 
 
 
