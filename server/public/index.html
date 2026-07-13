@@ -11,14 +11,24 @@
 
 <style>
 
+
+/* =========================
+   CONFIGURATION COULEURS
+   ========================= */
+
 :root {
 
-    --couleur-fond:#f508ba;
+    --couleur-fond:#980abb;
     --couleur-texte:white;
-    --couleur-principale:#000000;
+    --couleur-principale:#ffffff;
 
 }
 
+
+
+/* =========================
+   STYLE GENERAL
+   ========================= */
 
 
 body {
@@ -33,84 +43,169 @@ body {
 
     color:var(--couleur-texte);
 
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
 }
+
+
+
+
+
+/* =========================
+   ENCADRE PRINCIPAL
+   ========================= */
+
+
+.card {
+
+
+    background:#000;
+
+
+    border-radius:25px;
+
+
+    padding:40px;
+
+
+    width:90%;
+
+
+    max-width:450px;
+
+
+    box-shadow:
+    0 0 30px rgba(0,0,0,0.5);
+
+
+}
+
+
 
 
 
 .logo {
 
+
     width:250px;
+
 
     max-width:80%;
 
+
     margin-bottom:20px;
 
+
 }
+
+
 
 
 
 h1 {
 
+
     color:var(--couleur-principale);
 
+
 }
+
+
 
 
 
 video {
 
+
     width:90%;
+
 
     max-width:400px;
 
+
     margin-top:20px;
+
 
     border-radius:15px;
 
+
 }
+
+
 
 
 
 button {
 
+
     padding:15px 30px;
+
 
     font-size:18px;
 
+
     margin-top:15px;
+
 
     cursor:pointer;
 
+
     background:var(--couleur-principale);
+
 
     border:none;
 
+
     border-radius:10px;
 
+
 }
+
+
 
 
 
 input {
 
+
     padding:12px;
+
 
     font-size:18px;
 
+
     border-radius:8px;
 
+
     border:none;
+
+
+    text-align:center;
+
 
 }
 
 
 
+
+
 </style>
+
 
 </head>
 
 
 <body>
+
+
+
+<div class="card">
 
 
 
@@ -122,15 +217,18 @@ class="logo"
 
 
 
+
 <h1>
 InfinityLive
 </h1>
 
 
 
+
 <p>
 Entrez votre prénom pour participer :
 </p>
+
 
 
 
@@ -141,7 +239,9 @@ placeholder="Votre prénom"
 
 
 
+
 <br>
+
 
 
 
@@ -151,7 +251,15 @@ Participer
 
 
 
+
 <p id="status"></p>
+
+
+
+
+</div>
+
+
 
 
 
@@ -165,13 +273,18 @@ playsinline>
 
 
 
+
+
+
 <script src="/socket.io/socket.io.js"></script>
+
 
 
 <script>
 
 
 const socket = io();
+
 
 
 const button =
@@ -202,13 +315,16 @@ const configuration = {
     iceServers:[
 
         {
+
             urls:
             "stun:stun.l.google.com:19302"
+
         }
 
     ]
 
 };
+
 
 
 
@@ -234,7 +350,6 @@ socket.on(
 
 
 
-
 button.onclick = async()=>{
 
 
@@ -245,11 +360,14 @@ button.onclick = async()=>{
 
     if(!name){
 
+
         alert(
             "Veuillez entrer votre prénom"
         );
 
+
         return;
+
 
     }
 
@@ -263,25 +381,34 @@ button.onclick = async()=>{
         localStream =
         await navigator.mediaDevices.getUserMedia({
 
+
             video:{
+
 
                 width:{
                     ideal:1280
                 },
 
+
                 height:{
                     ideal:720
                 },
+
 
                 frameRate:{
                     ideal:30
                 },
 
+
                 facingMode:"user"
+
 
             },
 
+
             audio:false
+
+
 
         });
 
@@ -289,8 +416,10 @@ button.onclick = async()=>{
 
 
 
+
         video.srcObject =
         localStream;
+
 
 
 
@@ -305,6 +434,7 @@ button.onclick = async()=>{
 
 
 
+
         socket.emit(
             "visitorReady"
         );
@@ -313,13 +443,18 @@ button.onclick = async()=>{
 
 
 
+
         status.innerText =
+
         "Bienvenue " + name +
         " ! Vous êtes dans la file d'attente.";
 
 
 
+
+
     }
+
 
     catch(error){
 
@@ -327,15 +462,16 @@ button.onclick = async()=>{
         console.error(error);
 
 
+
         status.innerText =
         "Impossible d'accéder à la caméra.";
+
 
 
     }
 
 
 };
-
 
 
 
@@ -389,6 +525,7 @@ async function startWebRTC(){
 
 
 
+
     if(sender){
 
 
@@ -405,6 +542,7 @@ async function startWebRTC(){
 
 
 
+
         parameters.encodings[0].maxBitrate =
         2500000;
 
@@ -416,6 +554,8 @@ async function startWebRTC(){
 
 
     }
+
+
 
 
 
@@ -448,8 +588,11 @@ async function startWebRTC(){
 
 
 
+
     const offer =
     await peerConnection.createOffer();
+
+
 
 
 
@@ -462,13 +605,16 @@ async function startWebRTC(){
 
 
 
+
     socket.emit(
         "offer",
         offer
     );
 
 
+
 }
+
 
 
 
@@ -488,7 +634,6 @@ async(answer)=>{
 
 
 });
-
 
 
 
