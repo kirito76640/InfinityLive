@@ -6,53 +6,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>InfinityLive - Display</title>
+<title>InfinityLive Display</title>
 
 
 <style>
 
-body{
+body {
 
     margin:0;
-    height:100vh;
-
-    background:#000;
-
+    background:black;
     color:white;
-
     font-family:Arial, sans-serif;
 
     display:flex;
-
     justify-content:center;
-
     align-items:center;
+
+    height:100vh;
 
     text-align:center;
 
 }
 
 
-#screen{
 
-    font-size:60px;
+#status {
 
-    font-weight:bold;
-
-}
-
-
-
-.waiting{
-
+    font-size:80px;
     color:#777;
 
 }
 
 
-.live{
 
-    color:white;
+#visitor {
+
+    display:none;
+
+    font-size:120px;
+    font-weight:bold;
 
 }
 
@@ -66,12 +58,14 @@ body{
 <body>
 
 
-<div id="screen" class="waiting">
-
-En attente...
-
+<div id="status">
+    En attente
 </div>
 
+
+<div id="visitor">
+
+</div>
 
 
 
@@ -84,89 +78,55 @@ En attente...
 const socket = io();
 
 
-const screen =
-document.getElementById("screen");
+
+const status = document.getElementById("status");
+
+const visitor = document.getElementById("visitor");
 
 
 
 
 
-socket.on("connect",()=>{
+socket.on(
+    "currentVisitor",
+    (user)=>{
 
 
-    console.log(
-        "Display connecté :",
-        socket.id
-    );
+        if(user){
 
 
-});
+            status.style.display = "none";
 
 
+            visitor.style.display = "block";
 
 
-
-
-
-socket.on("queueUpdated",(users)=>{
-
-
-
-    if(users.length === 0){
-
-
-        screen.className =
-        "waiting";
-
-
-        screen.innerHTML =
-        "En attente...";
-
-
-        return;
-
-
-    }
+            visitor.innerText =
+            user.name;
 
 
 
+        }
+        else{
 
 
-    const current =
-    users.find(
-        user => user.status === "called"
-    );
+            visitor.style.display = "none";
 
 
+            status.style.display = "block";
 
 
-
-    if(current){
-
-
-
-        screen.className =
-        "live";
+            status.innerText =
+            "En attente";
 
 
-
-        screen.innerHTML =
-
-        "🎥<br>"
-        +
-        current.name
-        +
-        "<br><br>"
-        +
-        "EN DIRECT";
-
+        }
 
 
     }
 
+);
 
-
-});
 
 
 
