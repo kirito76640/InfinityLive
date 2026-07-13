@@ -81,14 +81,15 @@ Participer
 
 
 
-<script src="/socket.io/socket.io.js"></script>
 
+<script src="/socket.io/socket.io.js"></script>
 
 
 <script>
 
 
 const socket = io();
+
 
 
 const button =
@@ -114,6 +115,7 @@ let localStream;
 
 
 
+
 const configuration = {
 
     iceServers:[
@@ -125,6 +127,7 @@ const configuration = {
     ]
 
 };
+
 
 
 
@@ -143,6 +146,8 @@ socket.on(
 
 
 });
+
+
 
 
 
@@ -172,11 +177,30 @@ button.onclick = async ()=>{
         localStream =
         await navigator.mediaDevices.getUserMedia({
 
-            video:true,
+            video:{
+
+                width:{
+                    ideal:1280
+                },
+
+                height:{
+                    ideal:720
+                },
+
+                frameRate:{
+                    ideal:30
+                },
+
+                facingMode:"environment"
+
+            },
+
 
             audio:false
 
+
         });
+
 
 
 
@@ -215,6 +239,7 @@ button.onclick = async ()=>{
         status.innerText =
         "Impossible d'accéder à la caméra.";
 
+
     }
 
 
@@ -225,7 +250,11 @@ button.onclick = async ()=>{
 
 
 
+
+
+
 async function startWebRTC(){
+
 
 
     peerConnection =
@@ -235,18 +264,69 @@ async function startWebRTC(){
 
 
 
+
+
     localStream
     .getTracks()
     .forEach(track=>{
 
 
+        const sender =
         peerConnection.addTrack(
             track,
             localStream
         );
 
 
+
     });
+
+
+
+
+
+    // Amélioration débit vidéo
+
+    const sender =
+    peerConnection
+    .getSenders()
+    .find(
+        s => s.track &&
+        s.track.kind === "video"
+    );
+
+
+
+    if(sender){
+
+
+        const parameters =
+        sender.getParameters();
+
+
+
+        if(!parameters.encodings){
+
+            parameters.encodings=[{}];
+
+        }
+
+
+
+        parameters.encodings[0].maxBitrate =
+        2500000;
+
+
+
+        await sender.setParameters(
+            parameters
+        );
+
+
+    }
+
+
+
 
 
 
@@ -268,6 +348,8 @@ async function startWebRTC(){
 
 
     };
+
+
 
 
 
@@ -295,6 +377,9 @@ async function startWebRTC(){
 
 
 
+
+
+
 socket.on(
 "answer",
 async(answer)=>{
@@ -306,6 +391,7 @@ async(answer)=>{
 
 
 });
+
 
 
 
