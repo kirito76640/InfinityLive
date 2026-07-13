@@ -11,13 +11,27 @@
 
 <style>
 
+:root {
+
+    --couleur-fond:#f508ba;
+    --couleur-texte:white;
+    --couleur-principale:#000000;
+
+}
+
+
+
 body {
 
-    font-family: Arial, sans-serif;
+    font-family:Arial, sans-serif;
+
     text-align:center;
+
     padding:30px;
-    background:#111;
-    color:white;
+
+    background:var(--couleur-fond);
+
+    color:var(--couleur-texte);
 
 }
 
@@ -26,19 +40,31 @@ body {
 .logo {
 
     width:250px;
+
     max-width:80%;
+
     margin-bottom:20px;
 
 }
 
 
 
+h1 {
+
+    color:var(--couleur-principale);
+
+}
+
+
 
 video {
 
     width:90%;
+
     max-width:400px;
+
     margin-top:20px;
+
     border-radius:15px;
 
 }
@@ -48,9 +74,18 @@ video {
 button {
 
     padding:15px 30px;
+
     font-size:18px;
+
     margin-top:15px;
+
     cursor:pointer;
+
+    background:var(--couleur-principale);
+
+    border:none;
+
+    border-radius:10px;
 
 }
 
@@ -59,8 +94,11 @@ button {
 input {
 
     padding:12px;
+
     font-size:18px;
+
     border-radius:8px;
+
     border:none;
 
 }
@@ -69,22 +107,24 @@ input {
 
 </style>
 
-
 </head>
 
 
 <body>
 
 
+
 <img 
-src="/images/logo.png" 
+src="/images/logo.png"
 alt="InfinityLive"
 class="logo"
 >
 
 
 
-<h1>InfinityLive</h1>
+<h1>
+InfinityLive
+</h1>
 
 
 
@@ -95,7 +135,7 @@ Entrez votre prénom pour participer :
 
 
 <input 
-id="name" 
+id="name"
 placeholder="Votre prénom"
 >
 
@@ -115,12 +155,11 @@ Participer
 
 
 
-<video 
-id="camera" 
-autoplay 
+<video
+id="camera"
+autoplay
 playsinline>
 </video>
-
 
 
 
@@ -133,7 +172,6 @@ playsinline>
 
 
 const socket = io();
-
 
 
 const button =
@@ -159,8 +197,6 @@ let localStream;
 
 
 
-
-
 const configuration = {
 
     iceServers:[
@@ -173,7 +209,6 @@ const configuration = {
     ]
 
 };
-
 
 
 
@@ -200,7 +235,6 @@ socket.on(
 
 
 
-
 button.onclick = async()=>{
 
 
@@ -211,15 +245,14 @@ button.onclick = async()=>{
 
     if(!name){
 
-
         alert(
             "Veuillez entrer votre prénom"
         );
 
-
         return;
 
     }
+
 
 
 
@@ -255,8 +288,10 @@ button.onclick = async()=>{
 
 
 
+
         video.srcObject =
         localStream;
+
 
 
 
@@ -268,9 +303,13 @@ button.onclick = async()=>{
 
 
 
+
+
         socket.emit(
             "visitorReady"
         );
+
+
 
 
 
@@ -281,6 +320,7 @@ button.onclick = async()=>{
 
 
     }
+
     catch(error){
 
 
@@ -304,6 +344,7 @@ button.onclick = async()=>{
 
 
 
+
 async function startWebRTC(){
 
 
@@ -312,6 +353,7 @@ async function startWebRTC(){
     new RTCPeerConnection(
         configuration
     );
+
 
 
 
@@ -338,9 +380,12 @@ async function startWebRTC(){
     peerConnection
     .getSenders()
     .find(
-        s => s.track &&
+        s =>
+        s.track &&
         s.track.kind==="video"
     );
+
+
 
 
 
@@ -378,7 +423,6 @@ async function startWebRTC(){
 
 
 
-
     peerConnection.onicecandidate =
     event=>{
 
@@ -409,9 +453,12 @@ async function startWebRTC(){
 
 
 
+
     await peerConnection.setLocalDescription(
         offer
     );
+
+
 
 
 
@@ -422,7 +469,6 @@ async function startWebRTC(){
 
 
 }
-
 
 
 
@@ -442,6 +488,7 @@ async(answer)=>{
 
 
 });
+
 
 
 
