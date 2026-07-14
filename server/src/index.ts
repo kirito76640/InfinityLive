@@ -263,6 +263,13 @@ app.get("/",(req,res)=>{
 
 });
 
+app.get("/merci",(req,res)=>{
+
+    res.sendFile(
+        path.join(__dirname,"../public/merci.html")
+    );
+
+});
 
 
 app.get("/admin",(req,res)=>{
