@@ -4,6 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>InfinityLive</title>
@@ -11,158 +12,493 @@
 
 <style>
 
+
 *{
+
     box-sizing:border-box;
+
 }
+
 
 
 body{
 
+
     margin:0;
+
 
     min-height:100vh;
 
-    background:#bb07d3;
+
+    background:
+
+    radial-gradient(
+
+        circle at top,
+
+        #bb07d3,
+
+        #120012 70%
+
+    );
+
 
     color:white;
 
-    font-family:Arial,sans-serif;
+
+    font-family:
+
+    Arial,
+
+    sans-serif;
+
+
 
     display:flex;
 
+
     justify-content:center;
+
 
     align-items:center;
 
+
+
     padding:20px;
 
+
+
 }
+
+
+
+
+
+
+body::before{
+
+
+    content:"";
+
+
+    position:fixed;
+
+
+    inset:0;
+
+
+
+    background:
+
+    radial-gradient(
+
+        circle,
+
+        rgba(255,255,255,.12),
+
+        transparent 50%
+
+    );
+
+
+
+    pointer-events:none;
+
+
+
+}
+
+
+
 
 
 
 .container{
 
+
     width:100%;
+
 
     max-width:430px;
 
+
     text-align:center;
 
+
+
 }
+
+
+
 
 
 
 .logo{
 
-    width:220px;
 
-    max-width:80%;
+    width:240px;
 
-    margin-bottom:20px;
+
+    max-width:85%;
+
+
+    margin-bottom:25px;
+
+
+
+    filter:
+
+    drop-shadow(
+
+        0 0 20px rgba(255,255,255,.4)
+
+    );
+
+
 
 }
+
+
+
+
 
 
 
 .card{
 
-    background:rgba(0,0,0,0.75);
 
-    border-radius:20px;
+    background:
 
-    padding:25px;
+    rgba(0,0,0,.75);
 
-    box-shadow:0 0 25px rgba(0,0,0,0.5);
+
+
+    backdrop-filter:
+
+    blur(15px);
+
+
+
+    border-radius:30px;
+
+
+
+    padding:30px;
+
+
+
+    border:
+
+    1px solid rgba(255,255,255,.15);
+
+
+
+    box-shadow:
+
+
+    0 20px 50px rgba(0,0,0,.5);
+
+
 
 }
+
+
+
+
 
 
 
 h1{
 
+
     margin-top:0;
 
+
+    font-size:32px;
+
+
+    letter-spacing:1px;
+
+
+
 }
+
+
+
+
+
+
+
+p{
+
+
+    opacity:.8;
+
+
+    font-size:18px;
+
+
+
+}
+
+
+
 
 
 
 input{
 
+
     width:100%;
 
-    padding:15px;
 
-    border-radius:10px;
+    padding:16px;
+
+
+    border-radius:15px;
+
 
     border:none;
 
+
+
     font-size:18px;
 
-    margin-top:15px;
+
+
+    margin-top:20px;
+
+
+
+    outline:none;
+
+
 
 }
+
+
+
+
+
+
+input:focus{
+
+
+    box-shadow:
+
+    0 0 15px #bb07d3;
+
+
+
+}
+
+
+
 
 
 
 button{
 
+
     width:100%;
 
-    margin-top:15px;
 
-    padding:15px;
+    margin-top:20px;
 
-    border-radius:10px;
+
+
+    padding:17px;
+
+
+
+    border-radius:15px;
+
+
 
     border:none;
 
-    font-size:20px;
+
+
+    font-size:21px;
+
+
+
+    font-weight:bold;
+
+
 
     cursor:pointer;
 
-    background:#ffffff;
 
-    color:#000;
+
+    background:
+
+
+    linear-gradient(
+
+        135deg,
+
+        white,
+
+        #ddd
+
+    );
+
+
+
+    color:#111;
+
+
+
+    transition:.3s;
+
+
 
 }
+
+
+
+
+
+
+button:hover{
+
+
+    transform:scale(1.03);
+
+
+
+    box-shadow:
+
+    0 0 25px rgba(255,255,255,.5);
+
+
+
+}
+
+
+
 
 
 
 #status{
 
-    margin-top:20px;
+
+    margin-top:25px;
+
+
 
     font-size:20px;
 
-}
-
-
-
-#position{
-
-    margin-top:10px;
-
-    font-size:22px;
 
     font-weight:bold;
 
+
+
 }
+#position{
+
+
+    margin-top:15px;
+
+
+    font-size:24px;
+
+
+    font-weight:bold;
+
+
+
+    color:#ffffff;
+
+
+
+    text-shadow:
+
+
+    0 0 10px #bb07d3;
+
+
+
+}
+
+
+
+
 
 
 
 video{
 
+
     width:100%;
 
-    margin-top:25px;
 
-    border-radius:20px;
+    margin-top:30px;
+
+
+    border-radius:25px;
+
+
 
     background:black;
 
+
+
     display:none;
 
+
+
+    box-shadow:
+
+
+    0 0 30px rgba(187,7,211,.6);
+
+
+
 }
+
+
+
+
+
+
+
+@media(max-width:600px){
+
+
+    .card{
+
+
+        padding:22px;
+
+
+    }
+
+
+
+    h1{
+
+
+        font-size:26px;
+
+
+    }
+
+
+
+    .logo{
+
+
+        width:200px;
+
+
+    }
+
+
+
+}
+
 
 
 </style>
@@ -175,14 +511,23 @@ video{
 
 
 
+
+
 <div class="container">
 
 
 
+
+
 <img
+
 class="logo"
+
 src="/images/logo.png"
+
 alt="InfinityLive">
+
+
 
 
 
@@ -192,23 +537,39 @@ alt="InfinityLive">
 
 
 
+
+
 <h1>
+
 Bienvenue
+
 </h1>
 
 
 
+
+
+
+
 <p>
+
 Entrez votre prénom pour participer
+
 </p>
 
 
 
 
 
+
+
 <input
+
 id="name"
+
 placeholder="Votre prénom">
+
+
 
 
 
@@ -224,7 +585,10 @@ Participer
 
 
 
+
+
 <div id="status"></div>
+
 
 
 <div id="position"></div>
@@ -233,11 +597,19 @@ Participer
 
 
 
+
+
 <video
+
 id="camera"
+
 autoplay
+
 playsinline>
+
 </video>
+
+
 
 
 
@@ -250,10 +622,9 @@ playsinline>
 <script src="/socket.io/socket.io.js"></script>
 
 
+
 <script>
-
-
-const socket = io();
+    const socket = io();
 
 
 
@@ -308,6 +679,8 @@ const rtcConfiguration = {
 
 
 
+
+
 // ----------------------
 // POSITION FILE
 // ----------------------
@@ -329,6 +702,9 @@ socket.on(
 
 
 });
+
+
+
 
 
 
@@ -376,6 +752,8 @@ async()=>{
 
 
 
+
+
     if(peerConnection){
 
 
@@ -398,6 +776,8 @@ async()=>{
 
 
 
+
+
     cameraStream
     .getTracks()
     .forEach(track=>{
@@ -410,6 +790,7 @@ async()=>{
 
 
     });
+
 
 
 
@@ -432,7 +813,9 @@ async()=>{
 
 
     };
-    
+
+
+
 
 
 
@@ -442,9 +825,11 @@ async()=>{
 
 
 
+
     await peerConnection.setLocalDescription(
         offer
     );
+
 
 
 
@@ -511,6 +896,8 @@ async(answer)=>{
 
 
 
+
+
 // ----------------------
 // RECEPTION ICE
 // ----------------------
@@ -563,6 +950,9 @@ async(candidate)=>{
 
 
 
+
+
+
 // ----------------------
 // BOUTON PARTICIPER
 // ----------------------
@@ -574,6 +964,7 @@ async()=>{
 
     const name =
     nameInput.value.trim();
+
 
 
 
@@ -597,7 +988,9 @@ async()=>{
 
 
 
+
     try{
+
 
 
         cameraStream =
@@ -631,15 +1024,20 @@ await navigator.mediaDevices.getUserMedia({
 
 });
 
+
+
 const videoTrack =
 cameraStream.getVideoTracks()[0];
+
 
 
 const capabilities =
 videoTrack.getCapabilities();
 
 
+
 if(capabilities.width){
+
 
     await videoTrack.applyConstraints({
 
@@ -653,7 +1051,11 @@ if(capabilities.width){
 
     });
 
+
 }
+
+
+
 
 
 
@@ -667,7 +1069,6 @@ if(capabilities.width){
 
 
 
-        // Identification WebRTC
 
         socket.emit(
             "visitorReady"
@@ -678,7 +1079,7 @@ if(capabilities.width){
 
 
 
-        // Entrée file d'attente
+
 
         socket.emit(
             "joinQueue",
@@ -705,6 +1106,7 @@ if(capabilities.width){
 
         nameInput.style.display =
         "none";
+
 
 
 
@@ -739,10 +1141,10 @@ if(capabilities.width){
 
 
 
-
 </script>
 
 
 </body>
 
 </html>
+
