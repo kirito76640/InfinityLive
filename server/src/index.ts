@@ -10,12 +10,16 @@ app.use(express.static(path.join(__dirname, "../public")));
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
+    cors:{
+        origin:"*",
     },
 });
 
-const PORT: number = Number(process.env.PORT) || 3000;
+
+const PORT:number =
+Number(process.env.PORT) || 3000;
+
+
 
 
 
@@ -23,21 +27,23 @@ const PORT: number = Number(process.env.PORT) || 3000;
 // FILE D'ATTENTE
 // ----------------------
 
-const queue: {
-    id: string;
-    name: string;
+const queue:{
+    id:string;
+    name:string;
 }[] = [];
 
 
 
-let currentVisitor: {
-    id: string;
-    name: string;
+
+let currentVisitor:{
+    id:string;
+    name:string;
 } | null = null;
 
 
 
-let displayTimer: NodeJS.Timeout | null = null;
+let displayTimer:NodeJS.Timeout | null = null;
+
 
 
 // MODE AUTOMATIQUE
@@ -46,12 +52,20 @@ let autoMode = false;
 
 
 
-// Connexion WebRTC
 
-let visitorSocketId: string | null = null;
 
-let displaySocketId: string | null = null;
+// ----------------------
+// WEBRTC
+// ----------------------
 
+// Display connecté
+
+let displaySocketId:string | null = null;
+
+
+// Visiteur actuellement en caméra
+
+let activeVisitorSocketId:string | null = null;
 
 
 
@@ -62,7 +76,7 @@ let displaySocketId: string | null = null;
 // MISE A JOUR POSITIONS
 // ----------------------
 
-function updateQueuePositions() {
+function updateQueuePositions(){
 
 
     queue.forEach((visitor,index)=>{
@@ -78,6 +92,8 @@ function updateQueuePositions() {
 
 
 }
+
+
 
 
 
@@ -102,9 +118,8 @@ function callNextVisitor(){
 
 
 
-    if(queue.length === 0)
+    if(queue.length===0)
         return;
-
 
 
 
@@ -120,8 +135,14 @@ function callNextVisitor(){
 
 
 
-
     currentVisitor = visitor;
+
+
+
+    // Le visiteur devient celui de la caméra
+
+    activeVisitorSocketId =
+    visitor.id;
 
 
 
@@ -167,6 +188,7 @@ function callNextVisitor(){
 
 
 
+
     if(displayTimer){
 
         clearTimeout(displayTimer);
@@ -178,18 +200,27 @@ function callNextVisitor(){
 
 
 
+
     displayTimer =
     setTimeout(()=>{
 
 
-        currentVisitor = null;
+        if(currentVisitor){
+
+    io.to(currentVisitor.id)
+    .emit(
+        "visitorFinished"
+    );
+
+}
+
+currentVisitor = null;
 
 
-
-        io.emit(
-            "currentVisitor",
-            null
-        );
+io.emit(
+    "currentVisitor",
+    null
+);
 
 
 
@@ -215,11 +246,14 @@ function callNextVisitor(){
 
 
 
+
+
+
 // ----------------------
 // ROUTES
 // ----------------------
 
-app.get("/", (req,res)=>{
+app.get("/",(req,res)=>{
 
 
     res.sendFile(
@@ -275,6 +309,8 @@ io.on("connection",(socket)=>{
 
 
 
+
+
     // ----------------------
     // START / STOP AUTOMATIQUE
     // ----------------------
@@ -302,6 +338,7 @@ io.on("connection",(socket)=>{
 
 
 
+
     socket.on(
         "stopAuto",
         ()=>{
@@ -325,6 +362,7 @@ io.on("connection",(socket)=>{
 
 
 
+
     // ----------------------
     // WEBRTC IDENTIFICATION
     // ----------------------
@@ -333,9 +371,6 @@ io.on("connection",(socket)=>{
     socket.on(
         "visitorReady",
         ()=>{
-
-
-            visitorSocketId = socket.id;
 
 
             console.log(
@@ -357,7 +392,9 @@ io.on("connection",(socket)=>{
         ()=>{
 
 
-            displaySocketId = socket.id;
+            displaySocketId =
+            socket.id;
+
 
 
             console.log(
@@ -376,6 +413,7 @@ io.on("connection",(socket)=>{
 
 
 
+
     // ----------------------
     // WEBRTC RELAIS
     // ----------------------
@@ -384,6 +422,13 @@ io.on("connection",(socket)=>{
     socket.on(
         "offer",
         (offer)=>{
+
+
+            console.log(
+                "📤 OFFER reçue :",
+                socket.id
+            );
+
 
 
             if(displaySocketId){
@@ -396,29 +441,8 @@ io.on("connection",(socket)=>{
                 );
 
 
-            }
-
-
-        }
-    );
-
-
-
-
-
-
-    socket.on(
-        "answer",
-        (answer)=>{
-
-
-            if(visitorSocketId){
-
-
-                io.to(visitorSocketId)
-                .emit(
-                    "answer",
-                    answer
+                console.log(
+                    "➡️ OFFER envoyée au display"
                 );
 
 
@@ -433,15 +457,37 @@ io.on("connection",(socket)=>{
 
 
 
+
+
+
     socket.on(
-        "iceCandidate",
-        (candidate)=>{
+        "answer",
+        (answer)=>{
 
 
-            socket.broadcast.emit(
-                "iceCandidate",
-                candidate
+            console.log(
+                "📥 ANSWER reçue :",
+                socket.id
             );
+
+
+
+            if(activeVisitorSocketId){
+
+
+                io.to(activeVisitorSocketId)
+                .emit(
+                    "answer",
+                    answer
+                );
+
+
+                console.log(
+                    "➡️ ANSWER envoyée au visiteur"
+                );
+
+
+            }
 
 
         }
@@ -455,10 +501,59 @@ io.on("connection",(socket)=>{
 
 
 
-    // ----------------------
+    socket.on(
+        "iceCandidate",
+        (candidate)=>{
+
+
+            console.log(
+                "🧊 ICE reçu :",
+                socket.id
+            );
+
+
+
+            if(socket.id === activeVisitorSocketId){
+
+
+                if(displaySocketId){
+
+
+                    io.to(displaySocketId)
+                    .emit(
+                        "iceCandidate",
+                        candidate
+                    );
+
+
+                }
+
+
+            }
+            else{
+
+
+                if(activeVisitorSocketId){
+
+
+                    io.to(activeVisitorSocketId)
+                    .emit(
+                        "iceCandidate",
+                        candidate
+                    );
+
+
+                }
+
+
+            }
+
+
+        }
+    );
+        // ----------------------
     // VISITEUR REJOINT
     // ----------------------
-
 
     socket.on(
         "joinQueue",
@@ -467,19 +562,15 @@ io.on("connection",(socket)=>{
 
             const visitor = {
 
-
                 id:socket.id,
 
-
                 name:name
-
 
             };
 
 
 
             queue.push(visitor);
-
 
 
 
@@ -490,8 +581,6 @@ io.on("connection",(socket)=>{
 
 
 
-
-
             io.emit(
                 "queueUpdated",
                 queue
@@ -499,9 +588,7 @@ io.on("connection",(socket)=>{
 
 
 
-
             updateQueuePositions();
-
 
 
 
@@ -520,11 +607,8 @@ io.on("connection",(socket)=>{
 
 
 
-
-
-
     // ----------------------
-    // ADMIN MANUEL (gardé)
+    // ADMIN MANUEL
     // ----------------------
 
     socket.on(
@@ -539,9 +623,8 @@ io.on("connection",(socket)=>{
 
 
 
-            if(visitorIndex === -1)
+            if(visitorIndex===-1)
                 return;
-
 
 
 
@@ -549,6 +632,10 @@ io.on("connection",(socket)=>{
             currentVisitor =
             queue[visitorIndex];
 
+
+
+            activeVisitorSocketId =
+            currentVisitor.id;
 
 
 
@@ -561,10 +648,7 @@ io.on("connection",(socket)=>{
 
 
 
-
             updateQueuePositions();
-
-
 
 
 
@@ -575,8 +659,6 @@ io.on("connection",(socket)=>{
 
 
 
-
-
             io.emit(
                 "currentVisitor",
                 currentVisitor
@@ -584,14 +666,10 @@ io.on("connection",(socket)=>{
 
 
 
-
-
             io.to(visitorId)
             .emit(
                 "visitorCalled"
             );
-
-
 
 
 
@@ -606,8 +684,78 @@ io.on("connection",(socket)=>{
 
             if(displayTimer){
 
-
                 clearTimeout(displayTimer);
+
+            }
+
+
+
+
+
+            displayTimer =
+setTimeout(()=>{
+
+
+    if(currentVisitor){
+
+        io.to(currentVisitor.id)
+        .emit(
+            "visitorFinished"
+        );
+
+    }
+
+
+
+    currentVisitor=null;
+
+
+
+    io.emit(
+        "currentVisitor",
+        null
+    );
+
+
+
+},10000);
+
+
+
+        }
+    );
+
+
+
+
+
+
+
+
+
+    // ----------------------
+    // DECONNEXION
+    // ----------------------
+
+    socket.on(
+        "disconnect",
+        ()=>{
+
+
+            if(socket.id===displaySocketId){
+
+
+                displaySocketId = null;
+
+
+            }
+
+
+
+            if(socket.id===activeVisitorSocketId){
+
+
+                activeVisitorSocketId = null;
 
 
             }
@@ -616,112 +764,54 @@ io.on("connection",(socket)=>{
 
 
 
-
-            displayTimer =
-            setTimeout(()=>{
-
-
-                currentVisitor=null;
+            const index =
+            queue.findIndex(
+                user=>user.id===socket.id
+            );
 
 
 
-                io.emit(
-                    "currentVisitor",
-                    null
+
+
+            if(index!==-1){
+
+
+                queue.splice(
+                    index,
+                    1
                 );
 
 
 
-            },10000);
+                io.emit(
+                    "queueUpdated",
+                    queue
+                );
+
+
+
+                updateQueuePositions();
+
+
+            }
+
+
+
+
+
+            console.log(
+                "Déconnexion :",
+                socket.id
+            );
 
 
 
         }
     );
-    // ----------------------
-// DECONNEXION
-// ----------------------
-
-socket.on(
-    "disconnect",
-    ()=>{
-
-
-        if(socket.id===visitorSocketId){
-
-            visitorSocketId=null;
-
-        }
-
-
-
-        if(socket.id===displaySocketId){
-
-            displaySocketId=null;
-
-        }
-
-
-
-
-
-
-        const index =
-        queue.findIndex(
-            user=>user.id===socket.id
-        );
-
-
-
-
-
-
-        if(index!==-1){
-
-
-
-            queue.splice(
-                index,
-                1
-            );
-
-
-
-
-
-            io.emit(
-                "queueUpdated",
-                queue
-            );
-
-
-
-            updateQueuePositions();
-
-
-
-        }
-
-
-
-
-
-        console.log(
-            "Déconnexion :",
-            socket.id
-        );
-
-
-
-    }
-);
-
 
 
 
 });
-
-
 
 
 
