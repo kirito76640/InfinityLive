@@ -938,7 +938,25 @@ async(candidate)=>{
 
 });
 
+// ----------------------
+// FIN DU PASSAGE
+// ----------------------
 
+socket.on(
+"visitorFinished",
+()=>{
+
+
+    console.log(
+        "✅ Passage terminé"
+    );
+
+
+    window.location.href =
+    "/merci";
+
+
+});
 
 
 
