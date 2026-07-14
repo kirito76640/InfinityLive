@@ -11,6 +11,7 @@
 
 <style>
 
+
 *{
     box-sizing:border-box;
 }
@@ -27,18 +28,11 @@ body {
 
     overflow:hidden;
 
-    background:
-    radial-gradient(
-        circle at center,
-        #3a0055,
-        #050505 70%
-    );
+    background:black;
 
     color:white;
 
-    font-family:
-    Arial,
-    sans-serif;
+    font-family:Arial,sans-serif;
 
 
     display:flex;
@@ -54,68 +48,29 @@ body {
 
 
 
-body::before{
-
-    content:"";
+#logoInfinity{
 
     position:absolute;
 
-    width:100%;
+    top:30px;
 
-    height:100%;
+    left:50%;
 
-    background:
-    radial-gradient(
-        circle,
-        rgba(187,7,211,0.25),
-        transparent 60%
-    );
+    transform:translateX(-50%);
 
+    width:180px;
 
-    animation:
-    pulse 5s infinite;
+    z-index:10;
 
+    opacity:.9;
 
 }
-
-
-
-
-
-@keyframes pulse{
-
-
-    0%{
-
-        opacity:.4;
-
-    }
-
-
-    50%{
-
-        opacity:.8;
-
-    }
-
-
-    100%{
-
-        opacity:.4;
-
-    }
-
-
-}
-
-
 
 
 
 
 
 #message {
-
 
     position:absolute;
 
@@ -145,6 +100,7 @@ body::before{
     text-shadow:
 
     0 0 15px #bb07d3,
+
     0 0 30px #bb07d3;
 
 
@@ -190,7 +146,6 @@ body::before{
 
 
 
-
 video {
 
 
@@ -209,7 +164,6 @@ video {
     background:black;
 
 
-
 }
 
 
@@ -218,6 +172,7 @@ video {
 
 
 #remoteVideo{
+
 
     animation:
 
@@ -256,7 +211,6 @@ video {
 
 
 
-
 </style>
 
 
@@ -264,6 +218,13 @@ video {
 
 
 <body>
+
+
+<img
+id="logoInfinity"
+src="/images/logo.png"
+alt="InfinityLive">
+
 
 
 <div id="message"></div>
@@ -274,7 +235,6 @@ id="remoteVideo"
 autoplay
 playsinline>
 </video>
-
 
 
 
@@ -303,6 +263,7 @@ let peerConnection = null;
 
 
 let currentUser = null;
+
 
 
 
@@ -546,7 +507,8 @@ async(offer)=>{
 
 
     };
-    
+
+
 
 
 
@@ -598,6 +560,7 @@ async(offer)=>{
 
 
 
+
     const answer =
     await peerConnection.createAnswer();
 
@@ -627,7 +590,6 @@ async(offer)=>{
 
 
 });
-
 
 
 
@@ -682,6 +644,7 @@ async(candidate)=>{
 
 
 });
+
 
 
 
