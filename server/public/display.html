@@ -450,6 +450,22 @@ function showMessage(text,duration){
 // CHANGEMENT VISITEUR
 // ----------------------
 
+socket.on(
+"visitorFinished",
+async(user)=>{
+
+
+    if(user){
+
+        currentUser = user;
+
+    }
+
+
+    await finishVisitor();
+
+
+});
 
 socket.on(
 "currentVisitor",
@@ -476,10 +492,10 @@ async(user)=>{
     else{
 
 
-        await finishVisitor();
+    return;
 
 
-    }
+}
 
 
 });
