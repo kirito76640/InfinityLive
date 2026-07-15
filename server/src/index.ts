@@ -673,76 +673,79 @@ socket.on(
 
 
 
-        // CAS 2 : il était en passage caméra
+       // CAS 2 : il était en passage caméra
 
-        if(
-            currentVisitor &&
-            currentVisitor.id === socket.id
-        ){
-
-
-
-            console.log(
-                "❌ Visiteur caméra parti :",
-                currentVisitor.name
-            );
+if(
+    currentVisitor &&
+    currentVisitor.id === socket.id
+){
 
 
-
-            if(displayTimer){
-
-
-                clearTimeout(
-                    displayTimer
-                );
+    console.log(
+        "❌ Visiteur caméra parti :",
+        currentVisitor.name
+    );
 
 
-                displayTimer = null;
 
+    // Annulation du timer actuel
 
-            }
+    if(displayTimer){
+
+        clearTimeout(
+            displayTimer
+        );
+
+        displayTimer = null;
+
+    }
 
 
 
 
 
-            io.to(socket.id)
-            .emit(
-                "visitorFinished"
-            );
+    // Nettoyage WebRTC
+
+    io.emit(
+        "currentVisitor",
+        null
+    );
+
+
+
+    io.to(socket.id)
+    .emit(
+        "visitorFinished"
+    );
 
 
 
 
+    currentVisitor = null;
 
 
-            currentVisitor = null;
-
-
-
-            activeVisitorSocketId = null;
+    activeVisitorSocketId = null;
 
 
 
 
-
-            io.emit(
-                "currentVisitor",
-                null
-            );
+    console.log(
+        "➡️ Passage terminé immédiatement"
+    );
 
 
 
 
+    // Passe directement au suivant
 
-            callNextVisitor();
-
-
-
-            return;
+    callNextVisitor();
 
 
-        }
+
+    return;
+
+
+}
 
 
 
