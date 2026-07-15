@@ -405,6 +405,66 @@ async function finishVisitor(){
 
 
 
+async function finishVisitor(){
+
+
+    remoteVideo.srcObject = null;
+
+
+    remoteVideo.style.display =
+    "none";
+
+
+
+    if(peerConnection){
+
+
+        peerConnection.close();
+
+
+        peerConnection = null;
+
+
+    }
+
+
+
+    if(currentUser){
+
+
+        await showMessage(
+
+            "Infinity te remercie " + currentUser.name + " !",
+
+            2000
+
+        );
+
+
+    }
+
+
+
+    await showMessage(
+
+        "Au suivant !",
+
+        2000
+
+    );
+
+
+
+    currentUser = null;
+
+
+
+    socket.emit(
+        "displayReadyForNext"
+    );
+
+
+}
 
 function showMessage(text,duration){
 
@@ -449,6 +509,23 @@ function showMessage(text,duration){
 // ----------------------
 // CHANGEMENT VISITEUR
 // ----------------------
+
+socket.on(
+"visitorFinished",
+async(user)=>{
+
+
+    if(user){
+
+        currentUser = user;
+
+    }
+
+
+    await finishVisitor();
+
+
+});
 
 socket.on(
 "visitorFinished",
