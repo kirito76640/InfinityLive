@@ -245,6 +245,17 @@ app.get("/display",(req,res)=>{
 
 
 });
+
+app.get("/podium",(req,res)=>{
+
+    console.log("Route podium appelée");
+
+    res.sendFile(
+        path.join(__dirname,"../public/podium.html")
+    );
+
+});
+
 // ----------------------
 // SOCKET.IO
 // ----------------------

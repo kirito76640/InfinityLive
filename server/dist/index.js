@@ -24,9 +24,13 @@ let currentVisitor = null;
 let displayTimer = null;
 // MODE AUTOMATIQUE
 let autoMode = false;
-// Connexion WebRTC
-let visitorSocketId = null;
+// ----------------------
+// WEBRTC
+// ----------------------
+// Display connecté
 let displaySocketId = null;
+// Visiteur actuellement en caméra
+let activeVisitorSocketId = null;
 // ----------------------
 // MISE A JOUR POSITIONS
 // ----------------------
@@ -49,22 +53,16 @@ function callNextVisitor() {
     if (!visitor)
         return;
     currentVisitor = visitor;
+    // Le visiteur devient celui de la caméra
+    activeVisitorSocketId =
+        visitor.id;
     io.emit("queueUpdated", queue);
     updateQueuePositions();
     io.emit("currentVisitor", currentVisitor);
     io.to(visitor.id)
         .emit("visitorCalled");
     console.log("Passage automatique :", visitor.name);
-    if (displayTimer) {
-        clearTimeout(displayTimer);
-    }
-    displayTimer =
-        setTimeout(() => {
-            currentVisitor = null;
-            io.emit("currentVisitor", null);
-            console.log("Fin passage automatique");
-            callNextVisitor();
-        }, 10000);
+    // Le display gère désormais la fin du passage
 }
 // ----------------------
 // ROUTES
@@ -72,11 +70,18 @@ function callNextVisitor() {
 app.get("/", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public/index.html"));
 });
+app.get("/merci", (req, res) => {
+    res.sendFile(path_1.default.join(__dirname, "../public/merci.html"));
+});
 app.get("/admin", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public/admin.html"));
 });
 app.get("/display", (req, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public/display.html"));
+});
+app.get("/podium", (req, res) => {
+    console.log("Route podium appelée");
+    res.sendFile(path_1.default.join(__dirname, "../public/podium.html"));
 });
 // ----------------------
 // SOCKET.IO
@@ -100,30 +105,46 @@ io.on("connection", (socket) => {
     // WEBRTC IDENTIFICATION
     // ----------------------
     socket.on("visitorReady", () => {
-        visitorSocketId = socket.id;
         console.log("Visiteur WebRTC prêt :", socket.id);
     });
     socket.on("displayReady", () => {
-        displaySocketId = socket.id;
+        displaySocketId =
+            socket.id;
         console.log("Display WebRTC prêt :", socket.id);
     });
     // ----------------------
     // WEBRTC RELAIS
     // ----------------------
     socket.on("offer", (offer) => {
+        console.log("📤 OFFER reçue :", socket.id);
         if (displaySocketId) {
             io.to(displaySocketId)
                 .emit("offer", offer);
+            console.log("➡️ OFFER envoyée au display");
         }
     });
     socket.on("answer", (answer) => {
-        if (visitorSocketId) {
-            io.to(visitorSocketId)
+        console.log("📥 ANSWER reçue :", socket.id);
+        if (activeVisitorSocketId) {
+            io.to(activeVisitorSocketId)
                 .emit("answer", answer);
+            console.log("➡️ ANSWER envoyée au visiteur");
         }
     });
     socket.on("iceCandidate", (candidate) => {
-        socket.broadcast.emit("iceCandidate", candidate);
+        console.log("🧊 ICE reçu :", socket.id);
+        if (socket.id === activeVisitorSocketId) {
+            if (displaySocketId) {
+                io.to(displaySocketId)
+                    .emit("iceCandidate", candidate);
+            }
+        }
+        else {
+            if (activeVisitorSocketId) {
+                io.to(activeVisitorSocketId)
+                    .emit("iceCandidate", candidate);
+            }
+        }
     });
     // ----------------------
     // VISITEUR REJOINT
@@ -140,7 +161,33 @@ io.on("connection", (socket) => {
         callNextVisitor();
     });
     // ----------------------
-    // ADMIN MANUEL (gardé)
+    // VISITEUR QUITTE LA FILE
+    // ----------------------
+    socket.on("leaveQueue", () => {
+        console.log("🚪 Visiteur demande à quitter :", socket.id);
+        // CAS 1 : il est encore dans la file
+        const index = queue.findIndex(user => user.id === socket.id);
+        if (index !== -1) {
+            const visitor = queue[index];
+            queue.splice(index, 1);
+            console.log("❌ Retiré de la file :", visitor.name);
+            io.emit("queueUpdated", queue);
+            updateQueuePositions();
+            return;
+        }
+        // CAS 2 : il était en passage caméra
+        if (currentVisitor &&
+            currentVisitor.id === socket.id) {
+            console.log("❌ Visiteur caméra parti :", currentVisitor.name);
+            io.to(socket.id)
+                .emit("visitorFinished");
+            io.emit("currentVisitor", null);
+            return;
+        }
+        console.log("⚠️ Visiteur introuvable");
+    });
+    // ----------------------
+    // ADMIN MANUEL
     // ----------------------
     socket.on("callVisitor", (visitorId) => {
         const visitorIndex = queue.findIndex(user => user.id === visitorId);
@@ -148,6 +195,8 @@ io.on("connection", (socket) => {
             return;
         currentVisitor =
             queue[visitorIndex];
+        activeVisitorSocketId =
+            currentVisitor.id;
         queue.splice(visitorIndex, 1);
         updateQueuePositions();
         io.emit("queueUpdated", queue);
@@ -155,24 +204,25 @@ io.on("connection", (socket) => {
         io.to(visitorId)
             .emit("visitorCalled");
         console.log("Visiteur appelé :", currentVisitor.name);
-        if (displayTimer) {
-            clearTimeout(displayTimer);
-        }
-        displayTimer =
-            setTimeout(() => {
-                currentVisitor = null;
-                io.emit("currentVisitor", null);
-            }, 10000);
+        // Le display décidera quand passer au visiteur suivant
+    });
+    // ----------------------
+    // DISPLAY PRET POUR LE SUIVANT
+    // ----------------------
+    socket.on("displayReadyForNext", () => {
+        currentVisitor = null;
+        activeVisitorSocketId = null;
+        callNextVisitor();
     });
     // ----------------------
     // DECONNEXION
     // ----------------------
     socket.on("disconnect", () => {
-        if (socket.id === visitorSocketId) {
-            visitorSocketId = null;
-        }
         if (socket.id === displaySocketId) {
             displaySocketId = null;
+        }
+        if (socket.id === activeVisitorSocketId) {
+            activeVisitorSocketId = null;
         }
         const index = queue.findIndex(user => user.id === socket.id);
         if (index !== -1) {
