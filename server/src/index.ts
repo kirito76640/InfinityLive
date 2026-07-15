@@ -606,7 +606,154 @@ io.on("connection",(socket)=>{
         }
     );
 
+// ----------------------
+// VISITEUR QUITTE LA FILE
+// ----------------------
 
+socket.on(
+    "leaveQueue",
+    ()=>{
+
+
+        console.log(
+            "🚪 Visiteur demande à quitter :",
+            socket.id
+        );
+
+
+
+        // CAS 1 : il est encore dans la file
+
+        const index =
+        queue.findIndex(
+            user=>user.id===socket.id
+        );
+
+
+
+        if(index !== -1){
+
+
+            const visitor =
+            queue[index];
+
+
+
+            queue.splice(
+                index,
+                1
+            );
+
+
+
+            console.log(
+                "❌ Retiré de la file :",
+                visitor.name
+            );
+
+
+
+            io.emit(
+                "queueUpdated",
+                queue
+            );
+
+
+
+            updateQueuePositions();
+
+
+
+            return;
+
+        }
+
+
+
+
+
+
+        // CAS 2 : il était en passage caméra
+
+        if(
+            currentVisitor &&
+            currentVisitor.id === socket.id
+        ){
+
+
+
+            console.log(
+                "❌ Visiteur caméra parti :",
+                currentVisitor.name
+            );
+
+
+
+            if(displayTimer){
+
+
+                clearTimeout(
+                    displayTimer
+                );
+
+
+                displayTimer = null;
+
+
+            }
+
+
+
+
+
+            io.to(socket.id)
+            .emit(
+                "visitorFinished"
+            );
+
+
+
+
+
+
+            currentVisitor = null;
+
+
+
+            activeVisitorSocketId = null;
+
+
+
+
+
+            io.emit(
+                "currentVisitor",
+                null
+            );
+
+
+
+
+
+            callNextVisitor();
+
+
+
+            return;
+
+
+        }
+
+
+
+
+        console.log(
+            "⚠️ Visiteur introuvable"
+        );
+
+
+    }
+);
 
 
 
