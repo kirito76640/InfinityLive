@@ -557,7 +557,7 @@ alt="InfinityLive">
 
 
 
-<h1>
+<h1 id="welcomeTitle">
 
 Bienvenue
 
@@ -569,7 +569,7 @@ Bienvenue
 
 
 
-<p>
+<p id="welcomeText">
 
 Entrez votre prénom pour participer
 
@@ -1152,7 +1152,9 @@ if(capabilities.width){
        leaveButton.style.display =
        "block";
 
+document.getElementById("welcomeTitle").style.display = "none";
 
+document.getElementById("welcomeText").style.display = "none";
 
 
 
