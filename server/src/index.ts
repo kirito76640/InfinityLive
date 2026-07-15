@@ -67,7 +67,13 @@ let displaySocketId:string | null = null;
 
 let activeVisitorSocketId:string | null = null;
 
+function finishCurrentVisitor(){
 
+    currentVisitor = null;
+
+    activeVisitorSocketId = null;
+
+}
 
 
 
@@ -189,52 +195,7 @@ function callNextVisitor(){
 
 
 
-    if(displayTimer){
-
-        clearTimeout(displayTimer);
-
-    }
-
-
-
-
-
-
-
-    displayTimer =
-    setTimeout(()=>{
-
-
-        if(currentVisitor){
-
-    io.to(currentVisitor.id)
-    .emit(
-        "visitorFinished"
-    );
-
-}
-
-currentVisitor = null;
-
-
-io.emit(
-    "currentVisitor",
-    null
-);
-
-
-
-        console.log(
-            "Fin passage automatique"
-        );
-
-
-
-        callNextVisitor();
-
-
-
-    },10000);
+    // Le display gère désormais la fin du passage
 
 
 
@@ -680,37 +641,10 @@ if(
     currentVisitor.id === socket.id
 ){
 
-
     console.log(
         "❌ Visiteur caméra parti :",
         currentVisitor.name
     );
-
-
-
-    // Annulation du timer actuel
-
-    if(displayTimer){
-
-        clearTimeout(
-            displayTimer
-        );
-
-        displayTimer = null;
-
-    }
-
-
-
-
-
-    // Nettoyage WebRTC
-
-    io.emit(
-        "currentVisitor",
-        null
-    );
-
 
 
     io.to(socket.id)
@@ -719,31 +653,19 @@ if(
     );
 
 
+    finishCurrentVisitor();
 
 
-    currentVisitor = null;
-
-
-    activeVisitorSocketId = null;
-
-
-
-
-    console.log(
-        "➡️ Passage terminé immédiatement"
+    io.emit(
+        "currentVisitor",
+        null
     );
 
-
-
-
-    // Passe directement au suivant
 
     callNextVisitor();
 
 
-
     return;
-
 
 }
 
@@ -839,50 +761,32 @@ if(
 
 
 
-            if(displayTimer){
-
-                clearTimeout(displayTimer);
-
-            }
-
-
-
-
-
-            displayTimer =
-setTimeout(()=>{
-
-
-    if(currentVisitor){
-
-        io.to(currentVisitor.id)
-        .emit(
-            "visitorFinished"
-        );
-
-    }
-
-
-
-    currentVisitor=null;
-
-
-
-    io.emit(
-        "currentVisitor",
-        null
-    );
-
-
-
-},10000);
+            // Le display décidera quand passer au visiteur suivant
 
 
 
         }
     );
 
+// ----------------------
+// DISPLAY PRET POUR LE SUIVANT
+// ----------------------
 
+socket.on(
+    "displayReadyForNext",
+    ()=>{
+
+
+        currentVisitor = null;
+
+        activeVisitorSocketId = null;
+
+
+        callNextVisitor();
+
+
+    }
+);
 
 
 
@@ -909,13 +813,28 @@ setTimeout(()=>{
 
 
 
+            
             if(socket.id===activeVisitorSocketId){
 
 
-                activeVisitorSocketId = null;
+    console.log(
+        "🚨 Visiteur actif déconnecté"
+    );
 
 
-            }
+    finishCurrentVisitor();
+
+
+    io.emit(
+        "currentVisitor",
+        null
+    );
+
+
+    callNextVisitor();
+
+
+}
 
 
 
