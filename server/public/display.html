@@ -273,53 +273,39 @@ playsinline>
 
 <script>
 
-
 const socket = io();
-
 
 
 const message =
 document.getElementById("message");
 
 
-
 const remoteVideo =
 document.getElementById("remoteVideo");
 
 
-
 let peerConnection = null;
-
 
 let currentUser = null;
 
-
-
+let finishingVisitor = false;
 
 
 
 const configuration = {
 
-
     iceServers:[
 
-
         {
-
 
             urls:
             "stun:stun.l.google.com:19302"
 
-
         }
-
 
     ]
 
-
 };
-
-
 
 
 
@@ -328,7 +314,6 @@ const configuration = {
 // DISPLAY PRET
 // ----------------------
 
-
 socket.emit(
     "displayReady"
 );
@@ -336,6 +321,86 @@ socket.emit(
 
 
 
+
+// ----------------------
+// FIN VISITEUR
+// ----------------------
+
+async function finishVisitor(){
+
+
+    if(finishingVisitor)
+        return;
+
+
+    finishingVisitor = true;
+
+
+
+    remoteVideo.srcObject = null;
+
+
+    remoteVideo.style.display =
+    "none";
+
+
+
+    if(peerConnection){
+
+
+        peerConnection.close();
+
+
+        peerConnection = null;
+
+
+    }
+
+
+
+
+    if(currentUser){
+
+
+        await showMessage(
+
+            "Infinity te remercie " + currentUser.name + " !",
+
+            2000
+
+        );
+
+
+    }
+
+
+
+
+    await showMessage(
+
+        "Au suivant !",
+
+        2000
+
+    );
+
+
+
+
+    currentUser = null;
+
+
+
+    finishingVisitor = false;
+
+
+
+    socket.emit(
+        "displayReadyForNext"
+    );
+
+
+}
 
 
 
@@ -353,7 +418,6 @@ function showMessage(text,duration){
 
         message.style.display =
         "block";
-
 
 
         remoteVideo.style.display =
@@ -382,8 +446,6 @@ function showMessage(text,duration){
 
 
 
-
-
 // ----------------------
 // CHANGEMENT VISITEUR
 // ----------------------
@@ -395,6 +457,11 @@ async(user)=>{
 
 
     if(user){
+
+
+        if(finishingVisitor)
+            return;
+
 
 
         currentUser = user;
@@ -409,68 +476,14 @@ async(user)=>{
     else{
 
 
-        remoteVideo.srcObject =
-        null;
-
-
-
-        remoteVideo.style.display =
-        "none";
-
-
-
-        if(peerConnection){
-
-
-            peerConnection.close();
-
-
-            peerConnection = null;
-
-
-        }
-
-
-
-
-
-        if(currentUser){
-
-
-            await showMessage(
-
-                "Infinity te remercie " + currentUser.name + " !",
-
-                2000
-
-            );
-
-
-        }
-
-
-
-
-
-
-        await showMessage(
-
-            "Au suivant !",
-
-            2000
-
-        );
-
-
-
-        currentUser = null;
-
+        await finishVisitor();
 
 
     }
 
 
 });
+
 
 
 
@@ -580,19 +593,8 @@ async(offer)=>{
 
 
 
-    console.log(
-        "✅ OFFER enregistrée"
-    );
-
-
-
-
-
-
-
     const answer =
     await peerConnection.createAnswer();
-
 
 
 
@@ -604,24 +606,13 @@ async(offer)=>{
 
 
 
-
     socket.emit(
         "answer",
         answer
     );
 
 
-
-    console.log(
-        "📤 ANSWER envoyée"
-    );
-
-
-
 });
-
-
-
 
 
 
@@ -651,11 +642,6 @@ async(candidate)=>{
             );
 
 
-            console.log(
-                "🧊 ICE ajouté"
-            );
-
-
         }
         catch(error){
 
@@ -673,9 +659,6 @@ async(candidate)=>{
 
 
 });
-
-
-
 
 
 
