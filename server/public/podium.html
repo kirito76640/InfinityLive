@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>InfinityLive Podium</title>
+
+
+<style>
+
+
+*{
+    box-sizing:border-box;
+}
+
+
+
+body{
+
+
+    margin:0;
+
+
+    width:100vw;
+
+
+    height:100vh;
+
+
+    overflow:hidden;
+
+
+    background:
+
+
+    radial-gradient(
+
+        circle at top,
+
+        #bb07d3,
+
+        #100010 70%
+
+    );
+
+
+    color:white;
+
+
+    font-family:
+
+    Arial,
+
+    sans-serif;
+
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    text-align:center;
+
+
+}
+
+
+
+
+
+
+.container{
+
+
+    width:90%;
+
+
+    max-width:900px;
+
+
+
+}
+
+
+
+
+
+
+.card{
+
+
+    background:
+
+
+    rgba(0,0,0,.75);
+
+
+
+    backdrop-filter:
+
+
+    blur(15px);
+
+
+
+    border-radius:40px;
+
+
+
+    padding:50px;
+
+
+
+    border:
+
+
+    1px solid rgba(255,255,255,.15);
+
+
+
+    box-shadow:
+
+
+    0 20px 60px rgba(0,0,0,.6);
+
+
+
+}
+
+
+
+
+
+
+
+.logo{
+
+
+    width:260px;
+
+
+    max-width:70%;
+
+
+    margin-bottom:30px;
+
+
+
+    filter:
+
+
+    drop-shadow(
+
+        0 0 25px rgba(255,255,255,.6)
+
+    );
+
+
+
+}
+
+
+
+
+
+
+
+h1{
+
+
+    margin:0;
+
+
+    font-size:clamp(
+
+        40px,
+
+        5vw,
+
+        70px
+
+    );
+
+
+    font-weight:900;
+
+
+
+    text-shadow:
+
+
+    0 0 20px #bb07d3,
+
+
+    0 0 40px #bb07d3;
+
+
+
+}
+
+
+
+
+
+
+
+p{
+
+
+    margin-top:25px;
+
+
+    font-size:clamp(
+
+        25px,
+
+        3vw,
+
+        40px
+
+    );
+
+
+    font-weight:bold;
+
+
+
+}
+
+
+
+
+
+
+
+.qr{
+
+
+    margin:40px auto 0;
+
+
+    background:white;
+
+
+    padding:15px;
+
+
+    border-radius:25px;
+
+
+    width:260px;
+
+
+    height:260px;
+
+
+
+    box-shadow:
+
+
+    0 0 40px rgba(255,255,255,.5);
+
+
+
+}
+
+
+
+.qr img{
+
+
+    width:100%;
+
+
+    height:100%;
+
+
+    object-fit:contain;
+
+
+
+}
+
+
+
+
+
+
+
+</style>
+
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="container">
+
+
+
+<div class="card">
+
+
+
+<img
+
+class="logo"
+
+src="/images/logo.png"
+
+alt="InfinityLive">
+
+
+
+
+
+
+<h1>
+
+Souriez, vous êtes filmé !
+
+</h1>
+
+
+
+
+
+
+<p>
+
+Passez sur nos écrans en scannant ce QR code :
+
+</p>
+
+
+
+
+
+
+<div class="qr">
+
+
+<img
+
+src="C:\Users\infin\OneDrive\Bureau\InfinityLive\InfinityLive\server\public\images\qr-code.png"
+
+alt="QR Code InfinityLive">
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+</body>
+
+</html>
