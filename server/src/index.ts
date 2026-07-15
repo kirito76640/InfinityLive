@@ -67,24 +67,6 @@ let displaySocketId:string | null = null;
 
 let activeVisitorSocketId:string | null = null;
 
-function finishCurrentVisitor(){
-
-    const visitorFinished = currentVisitor;
-
-
-    currentVisitor = null;
-
-    activeVisitorSocketId = null;
-
-
-    io.emit(
-        "visitorFinished",
-        visitorFinished
-    );
-
-}
-
-
 
 
 // ----------------------
@@ -824,15 +806,7 @@ socket.on(
          if(socket.id===activeVisitorSocketId){
 
 
-    console.log(
-        "🚨 Visiteur actif déconnecté"
-    );
-
-
-    io.emit(
-        "currentVisitor",
-        null
-    );
+    activeVisitorSocketId = null;
 
 
 }
