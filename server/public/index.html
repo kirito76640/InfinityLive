@@ -375,7 +375,29 @@ button:hover{
 
 }
 
+#leave{
 
+
+    display:none;
+
+
+    background:
+
+    linear-gradient(
+
+        135deg,
+
+        #ff4b4b,
+
+        #990000
+
+    );
+
+
+    color:white;
+
+
+}
 
 
 
@@ -577,7 +599,11 @@ Participer
 
 </button>
 
+<button id="leave">
 
+Quitter la file
+
+</button>
 
 
 
@@ -627,6 +653,8 @@ playsinline>
 const button =
 document.getElementById("join");
 
+const leaveButton =
+document.getElementById("leave");
 
 const nameInput =
 document.getElementById("name");
@@ -1121,7 +1149,8 @@ if(capabilities.width){
         nameInput.style.display =
         "none";
 
-
+       leaveButton.style.display =
+       "block";
 
 
 
@@ -1152,7 +1181,89 @@ if(capabilities.width){
 
 };
 
+// ----------------------
+// QUITTER LA FILE
+// ----------------------
 
+leaveButton.onclick =
+()=>{
+
+
+    socket.emit(
+        "leaveQueue"
+    );
+
+
+
+    if(cameraStream){
+
+
+        cameraStream
+        .getTracks()
+        .forEach(track=>{
+
+
+            track.stop();
+
+
+        });
+
+
+        cameraStream = null;
+
+
+    }
+
+
+
+    if(peerConnection){
+
+
+        peerConnection.close();
+
+
+        peerConnection = null;
+
+
+    }
+
+
+
+    joined = false;
+
+
+
+    button.style.display =
+    "block";
+
+
+
+    nameInput.style.display =
+    "block";
+
+
+
+    nameInput.value =
+    "";
+
+
+
+    leaveButton.style.display =
+    "none";
+
+
+
+    position.innerText =
+    "";
+
+
+
+    status.innerText =
+    "Vous avez quitté la file";
+
+
+
+};
 
 
 </script>
