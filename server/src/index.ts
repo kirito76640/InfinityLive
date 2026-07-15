@@ -69,9 +69,18 @@ let activeVisitorSocketId:string | null = null;
 
 function finishCurrentVisitor(){
 
+    const visitorFinished = currentVisitor;
+
+
     currentVisitor = null;
 
     activeVisitorSocketId = null;
+
+
+    io.emit(
+        "visitorFinished",
+        visitorFinished
+    );
 
 }
 
@@ -653,7 +662,6 @@ if(
     );
 
 
-    finishCurrentVisitor();
 
 
     io.emit(
@@ -662,7 +670,6 @@ if(
     );
 
 
-    callNextVisitor();
 
 
     return;
@@ -814,7 +821,7 @@ socket.on(
 
 
             
-            if(socket.id===activeVisitorSocketId){
+         if(socket.id===activeVisitorSocketId){
 
 
     console.log(
@@ -822,16 +829,10 @@ socket.on(
     );
 
 
-    finishCurrentVisitor();
-
-
     io.emit(
         "currentVisitor",
         null
     );
-
-
-    callNextVisitor();
 
 
 }
