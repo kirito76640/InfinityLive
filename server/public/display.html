@@ -11,11 +11,9 @@
 
 <style>
 
-
 *{
     box-sizing:border-box;
 }
-
 
 
 body {
@@ -34,7 +32,6 @@ body {
 
     font-family:Arial,sans-serif;
 
-
     display:flex;
 
     justify-content:center;
@@ -44,8 +41,6 @@ body {
     text-align:center;
 
 }
-
-
 
 
 #logoInfinity{
@@ -62,11 +57,7 @@ body {
 
     z-index:10;
 
-    opacity:1;
-
 }
-
-
 
 
 
@@ -76,26 +67,19 @@ body {
 
     width:90%;
 
-
     font-size:clamp(
         40px,
         6vw,
         90px
     );
 
-
     font-weight:900;
-
 
     letter-spacing:2px;
 
-
     color:white;
 
-
     z-index:5;
-
-
 
     text-shadow:
 
@@ -103,46 +87,7 @@ body {
 
     0 0 30px #bb07d3;
 
-
-
-    animation:
-
-    appear .5s ease;
-
-
 }
-
-
-
-
-
-
-@keyframes appear{
-
-
-    from{
-
-        opacity:0;
-
-        transform:
-        scale(.8);
-
-    }
-
-
-    to{
-
-        opacity:1;
-
-        transform:
-        scale(1);
-
-    }
-
-
-}
-
-
 
 
 
@@ -176,72 +121,14 @@ video {
     border-radius:25px;
 
 
-    image-rendering:auto;
-
-
     box-shadow:
 
     0 0 40px rgba(187,7,211,.5);
 
 }
-#remoteVideo{
-
-    filter:
-
-    contrast(1.05)
-
-    brightness(1.05);
-
-
-}
-
-
-
-
-
-
-#remoteVideo{
-
-
-    animation:
-
-    videoAppear .8s ease;
-
-
-}
-
-
-
-
-
-@keyframes videoAppear{
-
-
-    from{
-
-
-        opacity:0;
-
-
-    }
-
-
-    to{
-
-
-        opacity:1;
-
-
-    }
-
-
-}
-
-
 
 
 </style>
-
 
 </head>
 
@@ -267,13 +154,14 @@ playsinline>
 
 
 
-
 <script src="/socket.io/socket.io.js"></script>
 
 
 <script>
 
+
 const socket = io();
+
 
 
 const message =
@@ -284,11 +172,14 @@ const remoteVideo =
 document.getElementById("remoteVideo");
 
 
+
 let peerConnection = null;
+
 
 let currentUser = null;
 
-let finishingVisitor = false;
+
+let passageTimer = null;
 
 
 
@@ -310,9 +201,7 @@ const configuration = {
 
 
 
-// ----------------------
-// DISPLAY PRET
-// ----------------------
+// DISPLAY CONNECTE
 
 socket.emit(
     "displayReady"
@@ -322,141 +211,19 @@ socket.emit(
 
 
 
-// ----------------------
-// FIN VISITEUR
-// ----------------------
-
-async function finishVisitor(){
-
-
-    if(finishingVisitor)
-        return;
-
-
-    finishingVisitor = true;
-
-
-
-    remoteVideo.srcObject = null;
-
-
-    remoteVideo.style.display =
-    "none";
-
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
-        peerConnection = null;
-
-
-    }
-
-
-
-
-    if(currentUser){
-
-
-        await showMessage(
-
-            "Infinity te remercie " + currentUser.name + " !",
-
-            2000
-
-        );
-
-
-    }
-
-
-
-
-    await showMessage(
-
-        "Au suivant !",
-
-        2000
-
-    );
-
-
-
-
-    currentUser = null;
-
-
-
-    finishingVisitor = false;
-
-
-
-    socket.emit(
-        "displayReadyForNext"
-    );
-
-
-}
-
-
-
-
-    if(currentUser){
-
-
-        await showMessage(
-
-            "Infinity te remercie " + currentUser.name + " !",
-
-            2000
-
-        );
-
-
-    }
-
-
-
-    await showMessage(
-
-        "Au suivant !",
-
-        2000
-
-    );
-
-
-
-    currentUser = null;
-
-
-
-    socket.emit(
-        "displayReadyForNext"
-    );
-
-
 function showMessage(text,duration){
 
 
     return new Promise(resolve=>{
 
 
-        message.innerText =
-        text;
+        message.innerText = text;
 
 
-        message.style.display =
-        "block";
+        message.style.display = "block";
 
 
-        remoteVideo.style.display =
-        "none";
-
+        remoteVideo.style.display = "none";
 
 
         setTimeout(()=>{
@@ -466,7 +233,6 @@ function showMessage(text,duration){
 
 
         },duration);
-
 
 
     });
@@ -479,82 +245,29 @@ function showMessage(text,duration){
 
 
 
-
-// ----------------------
-// CHANGEMENT VISITEUR
-// ----------------------
-
-socket.on(
-"visitorFinished",
-async(user)=>{
-
-
-    if(user){
-
-        currentUser = user;
-
-    }
-
-
-    await finishVisitor();
-
-
-});
-
-socket.on(
-"currentVisitor",
-async(user)=>{
-
-
-    if(user){
-
-
-        if(finishingVisitor)
-            return;
+async function finishVisitor(){
 
 
 
-        currentUser = user;
+    if(passageTimer){
 
 
+        clearTimeout(passageTimer);
 
-        message.style.display =
-        "none";
+
+        passageTimer = null;
 
 
     }
-    else{
-
-
-    await finishVisitor();
-
-
-}
-
-
-});
 
 
 
 
+    remoteVideo.srcObject = null;
 
 
+    remoteVideo.style.display = "none";
 
-
-
-// ----------------------
-// RECEPTION OFFER
-// ----------------------
-
-
-socket.on(
-"offer",
-async(offer)=>{
-
-
-    console.log(
-        "📥 OFFER reçue"
-    );
 
 
 
@@ -569,6 +282,100 @@ async(offer)=>{
 
     }
 
+
+
+
+    if(currentUser){
+
+
+        await showMessage(
+
+            "Infinity te remercie " + currentUser.name + " !",
+
+            2000
+
+        );
+
+
+    }
+
+
+
+
+    await showMessage(
+
+        "Au suivant !",
+
+        2000
+
+    );
+
+
+
+
+    currentUser = null;
+
+
+
+
+    socket.emit(
+        "displayReadyForNext"
+    );
+
+
+}
+
+
+
+
+
+
+
+// NOUVEAU VISITEUR
+
+
+socket.on(
+"currentVisitor",
+(user)=>{
+
+
+    if(user){
+
+
+        currentUser = user;
+
+
+        message.style.display =
+        "none";
+
+
+    }
+
+
+});
+
+
+
+
+
+
+
+
+// RECEPTION OFFER
+
+
+socket.on(
+"offer",
+async(offer)=>{
+
+
+    if(peerConnection){
+
+
+        peerConnection.close();
+
+
+    }
 
 
 
@@ -610,7 +417,7 @@ async(offer)=>{
 
 
         console.log(
-            "🎥 Flux vidéo reçu"
+            "🎥 Caméra reçue"
         );
 
 
@@ -624,13 +431,26 @@ async(offer)=>{
         "block";
 
 
-
         message.style.display =
         "none";
 
 
 
+        // LANCEMENT DES 10 SECONDES
+
+
+        passageTimer = setTimeout(()=>{
+
+
+            finishVisitor();
+
+
+        },10000);
+
+
+
     };
+
 
 
 
@@ -643,9 +463,9 @@ async(offer)=>{
 
 
 
+
     const answer =
     await peerConnection.createAnswer();
-
 
 
 
@@ -671,10 +491,6 @@ async(offer)=>{
 
 
 
-// ----------------------
-// RECEPTION ICE
-// ----------------------
-
 
 socket.on(
 "iceCandidate",
@@ -697,7 +513,6 @@ async(candidate)=>{
 
 
             console.error(
-                "Erreur ICE :",
                 error
             );
 
