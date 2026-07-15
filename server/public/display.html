@@ -405,30 +405,6 @@ async function finishVisitor(){
 
 
 
-async function finishVisitor(){
-
-
-    remoteVideo.srcObject = null;
-
-
-    remoteVideo.style.display =
-    "none";
-
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
-        peerConnection = null;
-
-
-    }
-
-
-
     if(currentUser){
 
 
@@ -463,8 +439,6 @@ async function finishVisitor(){
         "displayReadyForNext"
     );
 
-
-}
 
 function showMessage(text,duration){
 
@@ -528,23 +502,6 @@ async(user)=>{
 });
 
 socket.on(
-"visitorFinished",
-async(user)=>{
-
-
-    if(user){
-
-        currentUser = user;
-
-    }
-
-
-    await finishVisitor();
-
-
-});
-
-socket.on(
 "currentVisitor",
 async(user)=>{
 
@@ -569,7 +526,7 @@ async(user)=>{
     else{
 
 
-    return;
+    await finishVisitor();
 
 
 }
