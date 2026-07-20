@@ -776,14 +776,16 @@ socket.on(
     "displayReadyForNext",
     ()=>{
 
+        if(activeVisitorSocketId){
+            io.to(activeVisitorSocketId).emit(
+                "visitorFinished"
+            );
+        }
 
         currentVisitor = null;
-
         activeVisitorSocketId = null;
 
-
         callNextVisitor();
-
 
     }
 );
