@@ -699,7 +699,7 @@ const rtcConfiguration = {
 };
 
 
-
+peerConnection = new RTCPeerConnection(rtcConfiguration);
 
 
 
@@ -791,10 +791,13 @@ async()=>{
 
 
 
-    peerConnection =
-    new RTCPeerConnection(
-        rtcConfiguration
-    );
+    peerConnection = new RTCPeerConnection({
+    iceServers: [
+        {
+            urls: "stun:stun.l.google.com:19302"
+        }
+    ]
+});
 
 
 
@@ -803,17 +806,29 @@ async()=>{
 
 
     cameraStream
-    .getTracks()
-    .forEach(track=>{
+.getTracks()
+.forEach(track=>{
 
+    const sender = peerConnection.addTrack(
+        track,
+        cameraStream
+    );
 
-        peerConnection.addTrack(
-            track,
-            cameraStream
-        );
+    if(track.kind === "video"){
 
+        const params = sender.getParameters();
 
-    });
+        if(!params.encodings){
+            params.encodings = [{}];
+        }
+
+        params.encodings[0].maxBitrate = 1500000;
+
+        sender.setParameters(params);
+
+    }
+
+});
 
 
 
@@ -1043,16 +1058,16 @@ await navigator.mediaDevices.getUserMedia({
         facingMode:"user",
 
         width:{
-            ideal:1920
+            ideal:1280
         },
 
         height:{
-            ideal:1080
+            ideal:720
         },
 
         frameRate:{
             ideal:30,
-            max:60
+            max:30
         },
 
         aspectRatio:{
