@@ -110,9 +110,16 @@ function callNextVisitor(){
 
 
 
-    if(currentVisitor)
-        return;
+    if(currentVisitor){
 
+    console.log(
+        "⏳ Passage déjà en cours :",
+        currentVisitor.name
+    );
+
+    return;
+
+}
 
 
     if(queue.length===0)
@@ -636,7 +643,7 @@ socket.on(
 
 
 
-       // CAS 2 : il était en passage caméra
+      // CAS 2 : il était en passage caméra
 
 if(
     currentVisitor &&
@@ -655,6 +662,9 @@ if(
     );
 
 
+    currentVisitor = null;
+
+    activeVisitorSocketId = null;
 
 
     io.emit(
@@ -663,28 +673,15 @@ if(
     );
 
 
+    // Relance automatiquement la file
+    callNextVisitor();
 
 
     return;
 
-}
-
-
-
-
-        console.log(
-            "⚠️ Visiteur introuvable"
-        );
-
-
     }
+ }   
 );
-
-
-
-
-
-
 
     // ----------------------
     // ADMIN MANUEL
@@ -776,16 +773,29 @@ socket.on(
     "displayReadyForNext",
     ()=>{
 
+        console.log(
+            "➡️ Display prêt pour le suivant"
+        );
+
+
         if(activeVisitorSocketId){
+
             io.to(activeVisitorSocketId).emit(
                 "visitorFinished"
             );
+
         }
+
 
         currentVisitor = null;
         activeVisitorSocketId = null;
 
-        callNextVisitor();
+
+        if(autoMode){
+
+            callNextVisitor();
+
+        }
 
     }
 );
@@ -819,7 +829,26 @@ socket.on(
          if(socket.id===activeVisitorSocketId){
 
 
+    console.log(
+        "❌ Visiteur actif déconnecté"
+    );
+
+
     activeVisitorSocketId = null;
+
+    currentVisitor = null;
+
+
+    io.emit(
+        "currentVisitor",
+        null
+    );
+
+io.emit(
+    "visitorFinished"
+);
+
+    callNextVisitor();
 
 
 }
