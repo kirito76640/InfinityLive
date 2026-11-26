@@ -1,380 +1,73 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>InfinityLive Podium</title>
-
-
+<link rel="stylesheet" href="/css/infinity.css">
 <style>
-
-
-*{
-    box-sizing:border-box;
-}
-
-
-
 body{
-
-
-    margin:0;
-
-
     width:100vw;
-
-
     height:100vh;
-
-
     overflow:hidden;
-
-
-    background:
-
-
-    radial-gradient(
-
-        circle at top,
-
-        #bb07d3,
-
-        #100010 70%
-
-    );
-
-
-    color:white;
-
-
-    font-family:
-
-    Arial,
-
-    sans-serif;
-
-
-
     display:flex;
-
-
     justify-content:center;
-
-
     align-items:center;
-
-
     text-align:center;
-
-
 }
-
-
-
-
-
-
-.container{
-
-
-    width:90%;
-
-
-    max-width:900px;
-
-
-
+.stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2.4vh;
+    width:92%;
+    height:94vh;
 }
-
-
-
-
-
-
-.card{
-
-
-    background:
-
-
-    rgba(0,0,0,.75);
-
-
-
-    backdrop-filter:
-
-
-    blur(15px);
-
-
-
-    border-radius:40px;
-
-
-
-    padding:50px;
-
-
-
-    border:
-
-
-    1px solid rgba(255,255,255,.15);
-
-
-
-    box-shadow:
-
-
-    0 20px 60px rgba(0,0,0,.6);
-
-
-
-}
-
-
-
-
-
-
-
-.logo{
-
-
-    width:260px;
-
-
-    max-width:70%;
-
-
-    margin-bottom:30px;
-
-
-
-    filter:
-
-
-    drop-shadow(
-
-        0 0 25px rgba(255,255,255,.6)
-
-    );
-
-
-
-}
-
-
-
-
-
-
-
+.logo{ height:22vh; animation:float 5s ease-in-out infinite; }
 h1{
-
-
     margin:0;
-
-
-    font-size:clamp(
-
-        40px,
-
-        5vw,
-
-        70px
-
-    );
-
-
-    font-weight:900;
-
-
-
-    text-shadow:
-
-
-    0 0 20px #bb07d3,
-
-
-    0 0 40px #bb07d3;
-
-
-
+    font-size:clamp(40px,6vw,104px);
+    font-weight:800;
+    line-height:1.08;
+    letter-spacing:-.015em;
+    padding-bottom:.08em;
+    filter:drop-shadow(0 0 28px rgba(155,123,240,.5));
 }
-
-
-
-
-
-
-
 p{
-
-
-    margin-top:25px;
-
-
-    font-size:clamp(
-
-        25px,
-
-        3vw,
-
-        40px
-
-    );
-
-
-    font-weight:bold;
-
-
-
+    margin:0;
+    font-size:clamp(22px,2.8vw,48px);
+    font-weight:600;
+    color:var(--muted);
 }
-
-
-
-
-
-
-
+.qr-ring{
+    margin-top:1vh;
+    padding:5px;
+    border-radius:34px;
+    background:var(--grad);
+    box-shadow:0 0 70px rgba(155,123,240,.5);
+    animation:glow 3s ease-in-out infinite;
+}
 .qr{
-
-
-    margin:40px auto 0;
-
-
-    background:white;
-
-
-    padding:15px;
-
-
-    border-radius:25px;
-
-
-    width:260px;
-
-
-    height:260px;
-
-
-
-    box-shadow:
-
-
-    0 0 40px rgba(255,255,255,.5);
-
-
-
+    width:min(34vh,420px);
+    height:min(34vh,420px);
+    padding:16px;
+    border-radius:29px;
+    background:#fff;
 }
-
-
-
-.qr img{
-
-
-    width:100%;
-
-
-    height:100%;
-
-
-    object-fit:contain;
-
-
-
-}
-
-
-
-
-
-
-
+.qr img{ width:100%; height:100%; object-fit:contain; display:block; }
 </style>
-
-
 </head>
-
-
-
 <body>
 
-
-
-<div class="container">
-
-
-
-<div class="card">
-
-
-
-<img
-
-class="logo"
-
-src="/images/logo.png"
-
-alt="InfinityLive">
-
-
-
-
-
-
-<h1>
-
-Souriez, vous êtes filmé !
-
-</h1>
-
-
-
-
-
-
-<p>
-
-Passez sur nos écrans en scannant ce QR code :
-
-</p>
-
-
-
-
-
-
-<div class="qr">
-
-
-<img
-
-class="Qrcode"
-
-src="\images\qr-code.png"
-
-alt="Qr code InfinityLive">
-
-
+<div class="stage">
+    <img class="logo" src="/images/logo.png?v=4" alt="InfinityLive">
+    <h1 class="grad-text">Souriez, vous êtes filmé !</h1>
+    <p>Passez sur nos écrans en scannant ce QR code</p>
+    <div class="qr-ring">
+        <div class="qr"><img src="/images/qr-code.png" alt="QR code InfinityLive"></div>
+    </div>
 </div>
-
-
-
-
-
-</div>
-
-
-</div>
-
-
 
 </body>
-
 </html>

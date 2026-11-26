@@ -1,833 +1,349 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="theme-color" content="#06050d">
 <title>InfinityLive - Administration</title>
-
-
+<link rel="stylesheet" href="/css/infinity.css">
 <style>
-
-
-*{
-    box-sizing:border-box;
-}
-
-
-
-body{
-
-    margin:0;
-
-    min-height:100vh;
-
-    background:
-    radial-gradient(
-        circle at top,
-        #4b0082,
-        #090909 60%
-    );
-
-    color:white;
-
-    font-family:Arial, sans-serif;
-
-}
-
-
-
-
 header{
-
-    padding:30px;
-
-    text-align:center;
-
-    font-size:32px;
-
-    font-weight:bold;
-
-    background:rgba(255,255,255,0.08);
-
-    backdrop-filter:blur(15px);
-
-    border-bottom:1px solid rgba(255,255,255,.15);
-
-}
-
-
-
-main{
-
-    max-width:1000px;
-
-    margin:auto;
-
-    padding:30px;
-
-}
-
-
-
-
-.controls{
-
+    position:sticky;
+    top:0;
+    z-index:10;
     display:flex;
-
-    gap:20px;
-
-    flex-wrap:wrap;
-
-    margin-bottom:25px;
-
+    justify-content:center;
+    align-items:center;
+    padding:12px 20px;
+    background:rgba(6,5,13,.72);
+    -webkit-backdrop-filter:blur(16px);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--line);
 }
-
-
-
-button{
-
-    flex:1;
-
-    min-width:220px;
-
-    padding:16px;
-
-    border:none;
-
-    border-radius:15px;
-
-    font-size:18px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    color:white;
-
-    transition:.3s;
-
+header::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-1px;
+    height:2px;
+    background:var(--grad-h);
+    opacity:.8;
 }
+header .logo{ height:92px; }
+main{ max-width:1040px; margin:auto; padding:28px 24px 60px; }
 
-
-
-button:hover{
-
-    transform:scale(1.03);
-
-}
-
-
-
-.start{
-
-    background:
-    linear-gradient(
-        135deg,
-        #00c853,
-        #009624
-    );
-
-}
-
-
-
-.stop{
-
-    background:
-    linear-gradient(
-        135deg,
-        #ff1744,
-        #b2102f
-    );
-
-}
-
-
-
+.controls{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+.controls .btn{ padding:17px; font-size:16px; }
 
 #status{
-
-    padding:18px;
-
-    border-radius:15px;
-
-    background:rgba(255,255,255,.08);
-
-    font-size:22px;
-
-    margin-bottom:30px;
-
-    text-align:center;
-
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin:18px 0 26px;
+    padding:16px;
+    font-size:19px;
+    font-weight:700;
+    border-radius:16px;
+    border:1px solid var(--line);
+    background:var(--panel);
 }
+.dot{ width:12px; height:12px; border-radius:50%; background:var(--danger); box-shadow:0 0 12px var(--danger); }
+.dot.on{ background:var(--ok); box-shadow:0 0 12px var(--ok); }
 
-
-
-
-.dashboard{
-
-    display:grid;
-
-    grid-template-columns:
-
-    repeat(
-        auto-fit,
-        minmax(250px,1fr)
-    );
-
-    gap:20px;
-
-    margin-bottom:30px;
-
-}
-
-
-
-
-
-.card{
-
-    background:
-
-    rgba(255,255,255,.08);
-
-    backdrop-filter:blur(15px);
-
-    border-radius:20px;
-
-    padding:25px;
-
-    border:
-
-    1px solid rgba(255,255,255,.15);
-
-    box-shadow:
-
-    0 10px 30px rgba(0,0,0,.3);
-
-}
-
-
-
-
-.card-title{
-
-    opacity:.7;
-
-    font-size:16px;
-
-    margin-bottom:10px;
-
-}
-
-
-
-.card-value{
-
-    font-size:30px;
-
-    font-weight:bold;
-
-}
-
-
-
-
+.dashboard{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+.stat{ padding:22px 24px; }
+.stat-title{ color:var(--muted); font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:12px; }
+.stat-value{ font-size:28px; font-weight:800; }
+.stat-value.big{ font-size:44px; line-height:1; }
 
 h2{
-
-    margin-top:40px;
-
-    padding-bottom:10px;
-
-    border-bottom:
-
-    1px solid rgba(255,255,255,.2);
-
-}
-
-
-
-
-#current{
-
-    display:none;
-
-}
-
-
-
-
-
-.current-card{
-
-
-    background:
-
-    linear-gradient(
-        135deg,
-        #bb07d3,
-        #6a0080
-    );
-
-
-    padding:25px;
-
-    border-radius:20px;
-
-    font-size:25px;
-
-    text-align:center;
-
-
-}
-
-
-
-
-
-#queue{
-
+    margin:38px 0 16px;
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--muted);
     display:flex;
-
-    flex-direction:column;
-
-    gap:15px;
-
-}
-
-
-
-
-
-
-.visitor-card{
-
-
-    background:
-
-    rgba(255,255,255,.08);
-
-
-    padding:20px;
-
-
-    border-radius:15px;
-
-
-    display:flex;
-
-
-    justify-content:space-between;
-
-
     align-items:center;
-
-
+    gap:12px;
 }
+h2::after{ content:""; flex:1; height:1px; background:var(--line); }
 
-
-
-
-.visitor-position{
-
-
-    font-size:18px;
-
-
-    opacity:.7;
-
-
+#current{ display:none; }
+.current-card{
+    padding:24px 26px;
+    border-radius:var(--radius);
+    background:linear-gradient(135deg,rgba(47,214,238,.18),rgba(155,123,240,.20),rgba(229,59,232,.22));
+    border:1px solid rgba(155,123,240,.45);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
 }
+.current-card .who{ font-size:26px; font-weight:800; }
+.current-card small{ display:block; margin-top:6px; font-size:15px; color:var(--muted); font-weight:600; }
+.empty{ padding:22px; text-align:center; color:var(--muted); }
 
-
-
-
-.visitor-name{
-
-
-    font-size:24px;
-
-
-    font-weight:bold;
-
-
+#queue{ display:flex; flex-direction:column; gap:10px; }
+.visitor-card{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:14px 18px;
+    border-radius:16px;
+    border:1px solid var(--line);
+    background:var(--panel);
 }
+.visitor-card.offline{ opacity:.5; }
+.rank{
+    flex:none;
+    width:42px; height:42px;
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:18px;
+    color:#07060f;
+    background:var(--grad);
+}
+.visitor-info{ flex:1; min-width:0; }
+.visitor-name{ font-size:20px; font-weight:700; word-break:break-word; }
+.visitor-sub{ font-size:13px; color:var(--muted); margin-top:2px; }
+.actions{ display:flex; gap:8px; flex:none; }
+.actions .btn{ padding:10px 14px; font-size:14px; }
 
+.settings{ padding:24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:18px; align-items:end; }
+.settings label{ font-size:13px; font-weight:700; color:var(--muted); letter-spacing:.4px; }
+.settings .input{ margin-top:8px; padding:12px 14px; font-size:18px; }
+.settings .check{ display:flex; align-items:center; gap:12px; font-size:16px; color:var(--text); padding-bottom:12px; cursor:pointer; }
+.settings .check input{ width:20px; height:20px; accent-color:#9b7bf0; }
 
-
+#notice{
+    display:none;
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#ffb040;
+    color:#1a1200;
+    font-weight:800;
+    padding:14px 22px;
+    border-radius:14px;
+    z-index:40;
+}
+#login{
+    position:fixed;
+    inset:0;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    background:rgba(6,5,13,.9);
+    z-index:50;
+}
+#login .card{ width:min(90vw,380px); padding:30px; text-align:center; }
+#login .logo{ width:180px; margin-bottom:14px; }
+#login .input{ margin:6px 0 14px; text-align:center; }
+#login .btn{ width:100%; }
 
 @media(max-width:600px){
-
-
-    header{
-
-        font-size:24px;
-
-    }
-
-
-    main{
-
-        padding:15px;
-
-    }
-
-
-    button{
-
-        min-width:100%;
-
-    }
-
-
+    main{ padding:18px 14px 50px; }
+    header .logo{ height:72px; }
+    .visitor-card{ flex-wrap:wrap; }
+    .actions{ width:100%; }
+    .actions .btn{ flex:1; }
 }
-
 </style>
-
-
 </head>
-
-
 <body>
 
-
 <header>
-
-    InfinityLive - Administration
-
+    <img class="logo" src="/images/logo.png?v=4" alt="InfinityLive">
 </header>
 
-
-
+<div id="login">
+    <div class="card">
+        <img class="logo" src="/images/logo.png?v=4" alt="InfinityLive">
+        <input class="input" id="pw" type="password" placeholder="Mot de passe">
+        <button class="btn btn-primary" id="pwBtn">Se connecter</button>
+        <div id="pwErr" style="margin-top:12px;color:#ff9aa8;min-height:1.2em"></div>
+    </div>
+</div>
 
 <main>
-
-
-
-
-<div class="controls">
-
-
-    <button
-    class="start"
-    onclick="startAuto()">
-
-        🟢 START AUTOMATIQUE
-
-    </button>
-
-
-
-
-    <button
-    class="stop"
-    onclick="stopAuto()">
-
-        🔴 STOP AUTOMATIQUE
-
-    </button>
-
-
-</div>
-
-
-
-
-
-
-<div id="status">
-
-    Automatique : ARRÊTÉ 🔴
-
-</div>
-
-
-
-
-
-
-
-<div class="dashboard">
-
-
-    <div class="card">
-
-
-        <div class="card-title">
-
-            Participants en attente
-
-        </div>
-
-
-        <div
-        class="card-value"
-        id="counter">
-
-            0
-
-        </div>
-
-
+    <div class="controls">
+        <button class="btn btn-ok" onclick="socket.emit('startAuto')">▶ Démarrer l'automatique</button>
+        <button class="btn btn-danger" onclick="socket.emit('stopAuto')">■ Arrêter l'automatique</button>
+        <button class="btn btn-warn" onclick="socket.emit('skipCurrent')">⏭ Passer le visiteur en cours</button>
     </div>
 
+    <div id="status"><span class="dot" id="autoDot"></span><span id="statusText">Connexion…</span></div>
 
-
-
-    <div class="card">
-
-
-        <div class="card-title">
-
-            Statut système
-
+    <div class="dashboard">
+        <div class="card stat">
+            <div class="stat-title">En attente</div>
+            <div class="stat-value big" id="counter">0</div>
         </div>
-
-
-        <div
-        class="card-value">
-
-            🟢 En ligne
-
+        <div class="card stat">
+            <div class="stat-title">Écran display</div>
+            <div class="stat-value" id="displayState">…</div>
         </div>
-
-
+        <div class="card stat">
+            <div class="stat-title">Serveur</div>
+            <div class="stat-value" id="serverState">Hors ligne</div>
+        </div>
     </div>
 
+    <h2>Visiteur en cours</h2>
+    <div id="current"></div>
+    <div id="noCurrent" class="card empty">Personne à l'écran.</div>
 
-</div>
+    <h2>File d'attente</h2>
+    <div id="queue"></div>
 
-
-
-
-
-
-
-
-<h2>
-
-🎥 Visiteur en cours
-
-</h2>
-
-
-
-<div id="current">
-
-
-</div>
-
-
-
-
-
-
-
-
-<h2>
-
-👥 File d'attente
-
-</h2>
-
-
-
-
-<div id="queue">
-
-
-    <div class="card">
-
-        Aucun visiteur.
-
+    <h2>Réglages</h2>
+    <div class="card settings">
+        <label>Durée caméra (s)<input class="input" type="number" id="cameraTime" min="3" max="120"></label>
+        <label>Message d'accueil (s)<input class="input" type="number" id="welcomeTime" min="0" max="10"></label>
+        <label>Message de fin (s)<input class="input" type="number" id="goodbyeTime" min="0" max="10"></label>
+        <label class="check"><input type="checkbox" id="mirror"> Effet miroir sur l'écran</label>
+        <label class="check"><input type="checkbox" id="showAnimations"> Animations</label>
     </div>
-
-
-</div>
-
-
-
-
-
-
 </main>
 
-
-
-
-
-
-
+<div id="notice"></div>
 
 <script src="/socket.io/socket.io.js"></script>
-
-
 <script>
+const $ = id => document.getElementById(id);
+const socket = io({ reconnectionDelayMax: 3000 });
 
+let state = null;
+let deadline = null; // fin du passage en cours (calculée localement)
 
-const socket = io();
-
-
-
-
-const queue =
-document.getElementById("queue");
-
-
-
-const status =
-document.getElementById("status");
-
-
-
-const current =
-document.getElementById("current");
-
-
-
-const counter =
-document.getElementById("counter");
-
-
-
-
-let autoActive = false;
-
-
-
-
-
-
-
-
-function startAuto(){
-
-
-    autoActive = true;
-
-
-    status.innerText =
-
-    "Automatique : ACTIF 🟢";
-
-
-
-    socket.emit(
-        "startAuto"
-    );
-
-
+function esc(s){
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
 }
 
+// ----------------------
+// CONNEXION / MOT DE PASSE
+// ----------------------
 
-
-
-
-
-
-
-function stopAuto(){
-
-
-    autoActive = false;
-
-
-    status.innerText =
-
-    "Automatique : ARRÊTÉ 🔴";
-
-
-
-    socket.emit(
-        "stopAuto"
-    );
-
-
+function login(pw){
+    socket.emit("adminLogin", pw, res => {
+        if(res && res.ok){
+            sessionStorage.setItem("adminPw", pw);
+            $("login").style.display = "none";
+        }else{
+            sessionStorage.removeItem("adminPw");
+            $("login").style.display = "flex";
+            $("pwErr").textContent = pw ? "Mot de passe incorrect" : "";
+        }
+    });
 }
 
-
-
-
-
-
-
-
-
-socket.on(
-"currentVisitor",
-(user)=>{
-
-
-    if(user){
-
-
-
-        current.style.display =
-        "block";
-
-
-
-        current.className =
-        "current-card";
-
-
-
-        current.innerHTML =
-
-
-        "🎥 En passage : <b>"
-        +
-        user.name
-        +
-        "</b>";
-
-
-
-    }
-    else{
-
-
-        current.style.display =
-        "none";
-
-
-    }
-
-
+socket.on("connect", () => {
+    $("serverState").textContent = "En ligne";
+    login(sessionStorage.getItem("adminPw") || "");
+});
+socket.on("disconnect", () => {
+    $("serverState").textContent = "Hors ligne";
+    $("autoDot").className = "dot";
+    $("statusText").textContent = "Connexion au serveur perdue, reconnexion…";
 });
 
+$("pwBtn").onclick = () => login($("pw").value);
+$("pw").addEventListener("keydown", e => { if(e.key === "Enter") login($("pw").value); });
 
+// ----------------------
+// ETAT
+// ----------------------
 
+socket.on("adminState", s => {
+    state = s;
+    render();
+});
 
+socket.on("adminNotice", text => {
+    const n = $("notice");
+    n.textContent = text;
+    n.style.display = "block";
+    setTimeout(() => n.style.display = "none", 3500);
+});
 
+function render(){
+    const s = state;
+    $("autoDot").className = "dot" + (s.autoMode ? " on" : "");
+    $("statusText").textContent = s.autoMode ? "Automatique : actif" : "Automatique : arrêté";
+    $("counter").textContent = s.queue.length;
+    $("displayState").textContent = s.displayConnected ? "Connecté" : "Non connecté";
+    $("displayState").style.color = s.displayConnected ? "var(--ok)" : "var(--danger)";
 
-
-
-
-socket.on(
-"queueUpdated",
-(users)=>{
-
-
-    queue.innerHTML = "";
-
-
-
-    counter.innerText =
-    users.length;
-
-
-
-
-
-    if(users.length === 0){
-
-
-        queue.innerHTML =
-
-        `
-        <div class="card">
-
-        Aucun visiteur.
-
-        </div>
-        `;
-
-
-        return;
-
-
+    // visiteur en cours
+    const cur = $("current");
+    if(s.current){
+        const phase = s.current.phase === "live" ? "En direct" : s.current.phase === "connecting" ? "Connexion de la caméra…" : "Fin du passage";
+        deadline = s.current.remaining !== null ? Date.now() + s.current.remaining : null;
+        cur.style.display = "block";
+        cur.className = "current-card";
+        cur.innerHTML = "<div><div class='who'>" + esc(s.current.name) + "</div><small id='phase'>" + phase + "</small></div>";
+        $("noCurrent").style.display = "none";
+    }else{
+        deadline = null;
+        cur.style.display = "none";
+        $("noCurrent").style.display = "block";
     }
 
-
-
-
-
-
-
-
-    users.forEach((user,index)=>{
-
-
-        const div =
-        document.createElement("div");
-
-
-
-        div.className =
-        "visitor-card";
-
-
-
-
+    // file
+    const q = $("queue");
+    q.innerHTML = "";
+    if(!s.queue.length){
+        q.innerHTML = '<div class="card empty">Aucun visiteur en attente.</div>';
+    }
+    s.queue.forEach((u, i) => {
+        const div = document.createElement("div");
+        div.className = "visitor-card" + (u.connected ? "" : " offline");
         div.innerHTML =
-
-
-        `
-
-        <div>
-
-
-            <div class="visitor-position">
-
-            Position ${index+1}
-
-            </div>
-
-
-
-            <div class="visitor-name">
-
-            👤 ${user.name}
-
-            </div>
-
-
-        </div>
-
-
-
-        <div>
-
-
-            ${autoActive
-            ?
-            "🟢 Auto"
-            :
-            "⏳ Attente"
-            }
-
-
-        </div>
-
-
-        `;
-
-
-
-        queue.appendChild(div);
-
-
-
+            '<div class="rank">' + (i + 1) + '</div>' +
+            '<div class="visitor-info"><div class="visitor-name">' + esc(u.name) + '</div>' +
+            '<div class="visitor-sub">' + (u.connected ? "Connecté" : "Déconnecté, garde sa place") + '</div></div>' +
+            '<div class="actions">' +
+            '<button class="btn btn-primary call">Appeler</button>' +
+            '<button class="btn btn-danger remove">Retirer</button></div>';
+        div.querySelector(".call").onclick = () => socket.emit("callVisitor", u.vid);
+        div.querySelector(".remove").onclick = () => {
+            if(confirm("Retirer " + u.name + " de la file ?")) socket.emit("removeVisitor", u.vid);
+        };
+        q.appendChild(div);
     });
 
+    // réglages (sans écraser un champ en cours de saisie)
+    const c = s.config;
+    ["cameraTime", "welcomeTime", "goodbyeTime"].forEach(k => {
+        if(document.activeElement !== $(k)) $(k).value = c[k];
+    });
+    $("mirror").checked = c.mirror;
+    $("showAnimations").checked = c.showAnimations;
+}
 
+// compte à rebours du visiteur en cours
+setInterval(() => {
+    const el = $("phase");
+    if(el && deadline){
+        el.textContent = "En direct · " + Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) + " s restantes";
+    }
+}, 250);
 
+// ----------------------
+// REGLAGES
+// ----------------------
+
+["cameraTime", "welcomeTime", "goodbyeTime"].forEach(k => {
+    $(k).addEventListener("change", () => socket.emit("updateConfig", { [k]: $(k).value }));
 });
-
-
-
-
-
+["mirror", "showAnimations"].forEach(k => {
+    $(k).addEventListener("change", () => socket.emit("updateConfig", { [k]: $(k).checked }));
+});
 </script>
-
-
-
 </body>
-
 </html>

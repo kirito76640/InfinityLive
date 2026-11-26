@@ -1,535 +1,569 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>InfinityLive Display</title>
-
-
+<link rel="stylesheet" href="/css/infinity.css">
 <style>
-
-*{
-    box-sizing:border-box;
-}
-
-
-body {
-
-    margin:0;
-
+body{
     width:100vw;
-
     height:100vh;
-
     overflow:hidden;
-
-    background:black;
-
-    color:white;
-
-    font-family:Arial,sans-serif;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
     text-align:center;
+    cursor:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+.noanim *{ animation:none !important; }
 
+#logoTop{
+    height:clamp(80px,15vh,170px);
+    margin-top:2vh;
+    flex:none;
+}
+#main{
+    flex:1;
+    width:100%;
+    min-height:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:1vh 4vw 4vh;
 }
 
-
-#logoInfinity{
-
-    position:absolute;
-
-    top:30px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    width:200px;
-
-    z-index:10;
-
-}
-
-
-
-#message {
-
-    position:absolute;
-
-    width:90%;
-
-    font-size:clamp(
-        40px,
-        6vw,
-        90px
-    );
-
-    font-weight:900;
-
-    letter-spacing:2px;
-
-    color:white;
-
-    z-index:5;
-
-    text-shadow:
-
-    0 0 15px #bb07d3,
-
-    0 0 30px #bb07d3;
-
-}
-
-
-
-video {
-
+/* ----- messages ----- */
+#message{
     display:none;
+    max-width:92%;
+    font-size:clamp(44px,7vw,120px);
+    font-weight:800;
+    line-height:1.1;
+    letter-spacing:-.01em;
+}
+#message span{
+    background:var(--grad-h);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 28px rgba(155,123,240,.5));
+}
+#message.pop{ animation:pop .5s ease-out; }
 
+/* ----- camera ----- */
+#stage{
+    display:none;
+    position:relative;
+    width:min(100%,1500px);
+    height:100%;
+    padding:4px;
+    border-radius:32px;
+    background:var(--grad);
+    box-shadow:0 0 70px rgba(155,123,240,.45);
+    animation:glow 3s ease-in-out infinite;
+}
+#frame{
+    position:relative;
+    width:100%;
+    height:100%;
+    border-radius:28px;
+    overflow:hidden;
+    background:#000;
+}
+#frame video{ position:absolute; inset:0; width:100%; height:100%; }
+#bgVideo{ object-fit:cover; filter:blur(38px) brightness(.45); transform:scale(1.2); }
+#remoteVideo{ object-fit:contain; }
+#nameTag{
     position:absolute;
-
-    top:260px;
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-
-    width:90vw;
-
-    max-width:1200px;
-
-
-    height:calc(100vh - 300px);
-
-
-    object-fit:contain;
-
-
-    background:black;
-
-
-    border-radius:25px;
-
-
-    box-shadow:
-
-    0 0 40px rgba(187,7,211,.5);
-
+    left:24px;
+    bottom:30px;
+    padding:10px 26px;
+    border-radius:40px;
+    font-size:clamp(22px,2.6vw,44px);
+    font-weight:800;
+    background:rgba(6,5,13,.62);
+    border:1px solid rgba(255,255,255,.22);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+}
+#progress{
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:10px;
+    width:100%;
+    background:var(--grad-h);
 }
 
-
+/* ----- transition : le logo se dessine entre chaque passage ----- */
+#intro{ display:none; visibility:hidden; }
+#introBox{
+    position:relative;
+    width:min(46vw,64vh);
+    aspect-ratio:425/294;
+    filter:drop-shadow(0 0 45px rgba(155,123,240,.5));
+}
+#introBox svg, #introCanvas{ position:absolute; inset:0; width:100%; height:100%; display:block; overflow:visible; }
+#intro .disc{ transform-origin:var(--ox) var(--oy); }
+#intro #discL{ --ox:127.5px; --oy:119.5px; }
+#intro #discR{ --ox:272.5px; --oy:119.5px; }
+#intro #bar{ transform-origin:200px 280px; }
+#loopsFallback{ display:none; }
+.nogl #loopsFallback{ display:block; opacity:0; }
+.nogl #introCanvas{ display:none; }
+body[data-mode="idle"] #intro, body[data-mode="intro"] #intro{ display:block; }
+body[data-mode="idle"] #logoTop, body[data-mode="intro"] #logoTop{ display:none; }
+body[data-mode="idle"] #intro{ animation:float 6s ease-in-out infinite; }
+body[data-mode="message"] #message{ display:block; }
+body[data-mode="video"] #stage{ display:block; }
 </style>
-
 </head>
+<body data-mode="idle">
+
+<img class="logo" id="logoTop" src="/images/logo.png?v=4" alt="InfinityLive">
+
+<div id="main">
+    <div id="message"><span id="messageText"></span></div>
 
 
-<body>
+    <div id="intro">
+        <div id="introBox">
+            <canvas id="introCanvas"></canvas>
+            <svg viewBox="0 0 425 294" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="InfinityLive">
+                <image id="loopsFallback" href="/images/logo-loops.png?v=4" width="425" height="294"/>
+                <g id="discL" class="disc"><image href="/images/logo-disc-l.png?v=4" width="425" height="294"/></g>
+                <g id="discR" class="disc"><image href="/images/logo-disc-r.png?v=4" width="425" height="294"/></g>
+                <g id="text"><image href="/images/logo-text.png?v=4" width="425" height="294"/></g>
+                <g id="bar"><image href="/images/logo-bar.png?v=4" width="425" height="294"/></g>
+            </svg>
+        </div>
+    </div>
 
-
-<img
-id="logoInfinity"
-src="/images/logo.png"
-alt="InfinityLive">
-
-
-
-<div id="message"></div>
-
-
-<video
-id="remoteVideo"
-autoplay
-playsinline>
-</video>
-
-
+    <div id="stage">
+        <div id="frame">
+            <video id="bgVideo" autoplay playsinline muted></video>
+            <video id="remoteVideo" autoplay playsinline muted></video>
+            <div id="nameTag"></div>
+            <div id="progress"></div>
+        </div>
+    </div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
-
-
 <script>
+const $ = id => document.getElementById(id);
+const KEY = new URLSearchParams(location.search).get("key") || "";
+const socket = io({ reconnectionDelayMax: 3000 });
 
+const message = $("message"), messageText = $("messageText"), remoteVideo = $("remoteVideo"), bgVideo = $("bgVideo");
+const nameTag = $("nameTag"), progress = $("progress");
 
-const socket = io();
+let cfg = { welcomeTime:2, goodbyeTime:2, mirror:false, showAnimations:true,
+            iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
+let pc = null;
+let sessionId = null;
+let pendingIce = [];
+let welcomeUntil = 0;
+let liveSent = false;
+let progressTimer = null;
+let lostTimer = null;
+let showingIdle = false;
+let introTimer = null;
+const INTRO_MS = 3400; // durée de la transition logo
 
+// précharge les calques du logo pour que l'animation démarre sans à-coup
+["disc-l","disc-r","text","bar"].forEach(n => { new Image().src = "/images/logo-" + n + ".png?v=4"; });
 
+// Logo animé : une seule ligne de temps (0 -> T ms), lue à l'endroit pour l'arrivée d'un visiteur
+// et en boucle (à l'endroit, pause, à l'envers, pause) pendant l'attente.
+// Le tracé est dessiné en WebGL ; le reste (disques, texte, barre) est piloté par la même ligne de temps.
+const T_TRACE = 1650, T_END = 3300;
+const HOLD_FULL = 4000, HOLD_EMPTY = 1000; // temps logo complet / écran vide pendant l'attente
 
-const message =
-document.getElementById("message");
-
-
-const remoteVideo =
-document.getElementById("remoteVideo");
-
-
-
-let peerConnection = null;
-
-
-let currentUser = null;
-
-
-let passageTimer = null;
-
-
-
-const configuration = {
-
-    iceServers:[
-
-        {
-
-            urls:
-            "stun:stun.l.google.com:19302"
-
+function bezier(x1, y1, x2, y2){
+    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+    const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    const X = t => ((ax * t + bx) * t + cx) * t;
+    const Y = t => ((ay * t + by) * t + cy) * t;
+    const dX = t => (3 * ax * t + 2 * bx) * t + cx;
+    return x => {
+        if(x <= 0) return 0;
+        if(x >= 1) return 1;
+        let t = x;
+        for(let i = 0; i < 8; i++){
+            const e = X(t) - x;
+            if(Math.abs(e) < 1e-5) break;
+            const d = dX(t);
+            if(Math.abs(d) < 1e-6) break;
+            t -= e / d;
         }
-
-    ]
-
-};
-
-
-
-
-// DISPLAY CONNECTE
-
-socket.emit(
-    "displayReady"
-);
-
-
-
-
-
-function showMessage(text,duration){
-
-
-    return new Promise(resolve=>{
-
-
-        message.innerText = text;
-
-
-        message.style.display = "block";
-
-
-        remoteVideo.style.display = "none";
-
-
-        setTimeout(()=>{
-
-
-            resolve();
-
-
-        },duration);
-
-
-    });
-
-
+        return Y(t);
+    };
 }
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const easeTrace = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+const easeDisc = bezier(.16, .8, .24, 1);
+const easeText = bezier(0, 0, .58, 1);
+const easeBar = bezier(.3, .7, .2, 1);
 
+const trace = (() => {
+    const cv = $("introCanvas");
+    let gl = null, uT = null, ready = false, failed = false, initP = null;
+    const load = src => new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = src; });
 
-
-
-
-
-async function finishVisitor(){
-
-
-
-    if(passageTimer){
-
-
-        clearTimeout(passageTimer);
-
-
-        passageTimer = null;
-
-
+    function init(){
+        if(initP) return initP;
+        initP = (async () => {
+            try{
+                gl = cv.getContext("webgl", { premultipliedAlpha:true, alpha:true, antialias:false });
+                if(!gl) throw new Error("no webgl");
+                const sh = (type, src) => {
+                    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+                    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+                    return s;
+                };
+                const p = gl.createProgram();
+                gl.attachShader(p, sh(gl.VERTEX_SHADER,
+                    "attribute vec2 a;varying vec2 uv;void main(){uv=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}"));
+                gl.attachShader(p, sh(gl.FRAGMENT_SHADER,
+                    "precision mediump float;varying vec2 uv;uniform sampler2D L,P;uniform float t;" +
+                    "void main(){" +
+                    "vec4 c=texture2D(L,uv);float p=texture2D(P,uv).r;" +
+                    "float w=.06;float d=t*(1.+2.*w)-p;" +
+                    "float rev=smoothstep(0.,w,d);" +
+                    "float head=exp(-pow((d-.5*w)/(.9*w),2.))*(1.-smoothstep(.9,1.,t))*step(.0005,t);" +
+                    "vec3 col=c.rgb+vec3(.55)*head*c.a;" +
+                    "gl_FragColor=vec4(col*rev,c.a*rev);}"));
+                gl.linkProgram(p);
+                if(!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("link");
+                gl.useProgram(p);
+                const buf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+                const loc = gl.getAttribLocation(p, "a");
+                gl.enableVertexAttribArray(loc);
+                gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+                uT = gl.getUniformLocation(p, "t");
+                const [imgL, imgP] = await Promise.all([load("/images/logo-loops.png?v=4"), load("/images/logo-trace.png?v=4")]);
+                const tex = (unit, img, premult) => {
+                    gl.activeTexture(gl.TEXTURE0 + unit);
+                    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+                    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premult);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                };
+                tex(0, imgL, true);
+                tex(1, imgP, false);
+                gl.uniform1i(gl.getUniformLocation(p, "L"), 0);
+                gl.uniform1i(gl.getUniformLocation(p, "P"), 1);
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                ready = true;
+            }catch(e){
+                console.warn("Tracé WebGL indisponible, repli en fondu", e);
+                failed = true;
+                document.body.classList.add("nogl");
+            }
+        })();
+        return initP;
     }
 
+    function resize(){
+        if(!ready) return;
+        const w = Math.min(1700, Math.max(850, Math.round(cv.clientWidth * (window.devicePixelRatio || 1))));
+        const h = Math.round(w * 294 / 425);
+        if(cv.width !== w || cv.height !== h){ cv.width = w; cv.height = h; }
+        gl.viewport(0, 0, w, h);
+    }
 
+    function draw(t){
+        if(failed){ $("loopsFallback").style.opacity = t; return; }
+        if(!ready) return;
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uT, t);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    return { init, resize, draw };
+})();
 
+const logoAnim = (() => {
+    const box = $("introBox"), dL = $("discL"), dR = $("discR"), txt = $("text"), bar = $("bar");
+    let raf = 0, token = 0, lastGlow = -1;
 
+    let shown = false;
+    function render(ms){
+        if(!shown){ $("intro").style.visibility = "visible"; shown = true; }
+        trace.draw(easeTrace(clamp01(ms / T_TRACE)));
+        const set = (el, u, tr) => { el.style.opacity = u; el.style.transform = tr; };
+        let u = easeDisc(clamp01((ms - 1200) / 1000));
+        set(dL, u, "rotate(" + (-130 * (1 - u)) + "deg) scale(" + (.82 + .18 * u) + ")");
+        u = easeDisc(clamp01((ms - 1320) / 1000));
+        set(dR, u, "rotate(" + (-130 * (1 - u)) + "deg) scale(" + (.82 + .18 * u) + ")");
+        u = easeText(clamp01((ms - 2000) / 600));
+        set(txt, u, "translateY(" + (10 * (1 - u)) + "px)");
+        u = easeBar(clamp01((ms - 2250) / 650));
+        set(bar, u, "scaleX(" + u + ")");
+        // petite pulsation de lueur quand le logo se complète
+        const g = Math.sin(Math.PI * clamp01((ms - 2200) / 1100));
+        const gk = Math.round(g * 100);
+        if(gk !== lastGlow){
+            lastGlow = gk;
+            box.style.filter = "drop-shadow(0 0 " + (45 + 40 * g) + "px rgba(" + Math.round(155 + 35 * g) + ",123,240," + (.5 + .4 * g) + "))";
+        }
+    }
+
+    function stop(){ token++; cancelAnimationFrame(raf); }
+
+    // joue de "from" à "to" (en ms de la ligne de temps), à l'endroit ou à l'envers
+    function tween(from, to, my){
+        return new Promise(done => {
+            const dur = Math.abs(to - from), t0 = performance.now();
+            const frame = now => {
+                if(my !== token) return done(false);
+                const k = dur ? Math.min(1, (now - t0) / dur) : 1;
+                render(from + (to - from) * k);
+                if(k < 1) raf = requestAnimationFrame(frame); else done(true);
+            };
+            raf = requestAnimationFrame(frame);
+        });
+    }
+    const wait = (ms, my) => new Promise(done => setTimeout(() => done(my === token), ms));
+
+    async function prepare(my){
+        await trace.init();
+        if(my !== token) return false;
+        trace.resize();
+        return true;
+    }
+
+    return {
+        stop,
+        // arrivée d'un visiteur : une seule fois, le logo reste complet à la fin
+        async playOnce(){
+            stop(); const my = token;
+            if(!await prepare(my)) return;
+            render(0);
+            await tween(0, T_END, my);
+        },
+        // attente : tracé, pause, tracé inversé, pause, et on recommence
+        async loop(){
+            stop(); const my = token;
+            if(!await prepare(my)) return;
+            while(my === token){
+                render(0);
+                if(!await wait(500, my)) return;
+                if(!await tween(0, T_END, my)) return;
+                if(!await wait(HOLD_FULL, my)) return;
+                if(!await tween(T_END, 0, my)) return;
+                if(!await wait(HOLD_EMPTY, my)) return;
+            }
+        },
+        // animations désactivées : logo complet, immobile
+        async showFull(){
+            stop(); const my = token;
+            if(!await prepare(my)) return;
+            render(T_END);
+        }
+    };
+})();
+trace.init();
+
+// ----------------------
+// AFFICHAGE
+// ----------------------
+
+function setMode(mode){
+    document.body.dataset.mode = mode;
+    if(mode !== "idle" && mode !== "intro") logoAnim.stop();
+}
+
+function showMessage(text){
+    showingIdle = false;
+    messageText.textContent = text;
+    message.classList.remove("pop");
+    void message.offsetWidth;
+    message.classList.add("pop");
+    setMode("message");
+}
+
+function showIdle(){
+    if(showingIdle && document.body.dataset.mode === "idle") return; // déjà en attente : on ne relance pas la boucle
+    showingIdle = true;
+    setMode("idle");
+    if(cfg.showAnimations === false) logoAnim.showFull(); else logoAnim.loop();
+}
+
+function playIntro(){
+    showingIdle = false;
+    setMode("intro");
+    logoAnim.playOnce();
+}
+
+function applyConfig(){
+    document.body.classList.toggle("noanim", cfg.showAnimations === false);
+    remoteVideo.style.transform = cfg.mirror ? "scaleX(-1)" : "";
+}
+
+// ----------------------
+// WEBRTC
+// ----------------------
+
+function closePeer(){
+    clearInterval(progressTimer);
+    clearTimeout(lostTimer);
+    if(pc){
+        pc.ontrack = pc.onicecandidate = pc.onconnectionstatechange = null;
+        try{ pc.close(); }catch(e){}
+        pc = null;
+    }
+    pendingIce = [];
     remoteVideo.srcObject = null;
-
-
-    remoteVideo.style.display = "none";
-
-
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
-        peerConnection = null;
-
-
-    }
-
-
-
-
-    if(currentUser){
-
-
-        await showMessage(
-
-            "Infinity te remercie " + currentUser.name + " !",
-
-            2000
-
-        );
-
-
-    }
-
-
-
-
-    await showMessage(
-
-        "Au suivant !",
-
-        2000
-
-    );
-
-
-
-
-    currentUser = null;
-
-
-
-
-    socket.emit(
-        "displayReadyForNext"
-    );
-
-
+    bgVideo.srcObject = null;
 }
 
-
-
-
-
-
-
-// NOUVEAU VISITEUR
-
-
-socket.on(
-"currentVisitor",
-(user)=>{
-
-
-    if(user){
-
-
-        currentUser = user;
-
-
-        message.style.display =
-        "none";
-
-
+async function flushIce(){
+    const list = pendingIce; pendingIce = [];
+    for(const c of list){
+        try{ await pc.addIceCandidate(c); }catch(e){ console.warn("ICE ignoré", e); }
     }
+}
 
+// Affiche la caméra quand l'image tourne vraiment ET que l'accueil est terminé
+function revealVideo(id){
+    if(id !== sessionId || liveSent) return;
+    const wait = Math.max(0, welcomeUntil - Date.now());
+    setTimeout(() => {
+        if(id !== sessionId || liveSent) return;
+        liveSent = true;
+        setMode("video");
+        socket.emit("videoLive", { sessionId:id });
+    }, wait);
+}
 
+remoteVideo.addEventListener("playing", () => revealVideo(sessionId));
+
+// ----------------------
+// SOCKET : à CHAQUE (re)connexion on se déclare display
+// ----------------------
+
+socket.on("connect", () => socket.emit("displayReady", KEY));
+
+socket.on("displayDenied", () => {
+    showMessage("Accès refusé : ajoutez ?key=VOTRE_MOT_DE_PASSE à l'adresse");
 });
 
+socket.on("config", c => {
+    const was = cfg.showAnimations;
+    cfg = Object.assign(cfg, c);
+    applyConfig();
+    if(showingIdle && was !== cfg.showAnimations){ showingIdle = false; showIdle(); } // bascule boucle / logo fixe
+});
 
+socket.on("idle", d => {
+    clearTimeout(introTimer);
+    closePeer();
+    sessionId = null;
+    showIdle();
+});
 
-
-
-
-
-
-// RECEPTION OFFER
-
-
-socket.on(
-"offer",
-async(offer)=>{
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
+socket.on("currentVisitor", d => {
+    closePeer();
+    sessionId = d.sessionId;
+    liveSent = false;
+    clearTimeout(introTimer);
+    nameTag.textContent = "👤 " + d.name;
+    const id = d.sessionId;
+    const text = "Bienvenue " + d.name + " !";
+    const intro = cfg.showAnimations === false ? 0 : INTRO_MS;
+    // la transition logo passe avant le message d'accueil ; la caméra n'apparaît qu'après les deux
+    welcomeUntil = Date.now() + intro + (d.welcomeTime || 0) * 1000;
+    if(intro){
+        playIntro();
+        introTimer = setTimeout(() => { if(id === sessionId && !liveSent) showMessage(text); }, intro);
+    }else{
+        showMessage(text);
     }
+});
 
+socket.on("offer", async d => {
+    if(d.sessionId !== sessionId) return;
+    closePeer();
+    const id = d.sessionId;
+    const peer = new RTCPeerConnection({ iceServers:cfg.iceServers });
+    pc = peer;
 
-
-
-    peerConnection =
-    new RTCPeerConnection(
-        configuration
-    );
-
-
-
-
-
-    peerConnection.onicecandidate =
-    (event)=>{
-
-
-        if(event.candidate){
-
-
-            socket.emit(
-                "iceCandidate",
-                event.candidate
-            );
-
-
-        }
-
-
+    peer.onicecandidate = e => {
+        if(e.candidate) socket.emit("iceCandidate", { sessionId:id, candidate:e.candidate });
     };
 
-
-
-
-
-
-    peerConnection.ontrack =
-    (event)=>{
-
-
-        console.log(
-            "🎥 Caméra reçue"
-        );
-
-
-
-        remoteVideo.srcObject =
-        event.streams[0];
-
-
-
-        remoteVideo.style.display =
-        "block";
-
-
-        message.style.display =
-        "none";
-
-
-
-        // LANCEMENT DES 10 SECONDES
-
-
-        passageTimer = setTimeout(()=>{
-
-
-            finishVisitor();
-
-
-        },15000);
-
-
-
+    peer.ontrack = e => {
+        if(e.track.kind !== "video") return;
+        const stream = e.streams[0] || new MediaStream([e.track]);
+        remoteVideo.srcObject = stream;
+        bgVideo.srcObject = stream;
+        remoteVideo.play().catch(() => {});
+        bgVideo.play().catch(() => {});
+        setTimeout(() => revealVideo(id), 3000); // filet si l'évènement "playing" tarde
     };
 
-
-
-
-
-
-
-    await peerConnection.setRemoteDescription(
-        offer
-    );
-
-
-
-
-    const answer =
-    await peerConnection.createAnswer();
-
-
-
-    await peerConnection.setLocalDescription(
-        answer
-    );
-
-
-
-
-    socket.emit(
-        "answer",
-        answer
-    );
-
-
-});
-
-
-
-
-
-
-
-
-
-socket.on(
-"iceCandidate",
-async(candidate)=>{
-
-
-    if(peerConnection){
-
-
-        try{
-
-
-            await peerConnection.addIceCandidate(
-                candidate
-            );
-
-
+    peer.onconnectionstatechange = () => {
+        const s = peer.connectionState;
+        console.log("WebRTC :", s);
+        clearTimeout(lostTimer);
+        if(s === "failed"){
+            socket.emit("streamLost", { sessionId:id });
+        }else if(s === "disconnected"){
+            // coupure brève tolérée, au-delà on passe au suivant
+            lostTimer = setTimeout(() => {
+                if(pc === peer && peer.connectionState !== "connected") socket.emit("streamLost", { sessionId:id });
+            }, 4000);
         }
-        catch(error){
+    };
 
-
-            console.error(
-                error
-            );
-
-
-        }
-
-
+    try{
+        await peer.setRemoteDescription(d.offer);
+        await flushIce();
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        socket.emit("answer", { sessionId:id, answer:peer.localDescription });
+    }catch(e){
+        console.error("Offer", e);
+        socket.emit("streamLost", { sessionId:id });
     }
-
-
 });
 
+socket.on("iceCandidate", async d => {
+    if(d.sessionId !== sessionId || !pc) return;
+    if(!pc.remoteDescription){ pendingIce.push(d.candidate); return; }
+    try{ await pc.addIceCandidate(d.candidate); }catch(e){ console.warn("ICE ignoré", e); }
+});
 
+socket.on("sessionLive", d => {
+    if(d.sessionId !== sessionId) return;
+    clearInterval(progressTimer);
+    const end = Date.now() + d.duration;
+    progressTimer = setInterval(() => {
+        const left = Math.max(0, end - Date.now());
+        progress.style.width = (left / d.duration * 100) + "%";
+        if(left <= 0) clearInterval(progressTimer);
+    }, 80);
+});
 
+socket.on("sessionEnded", d => {
+    clearTimeout(introTimer);
+    closePeer();
+    sessionId = null;
+    if(d.goodbye) showMessage("Infinity te remercie " + d.name + " !");
+    else showIdle();
+});
+
+applyConfig();
+showIdle();
 </script>
-
-
 </body>
-
 </html>

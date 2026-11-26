@@ -1,1292 +1,429 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#06050d">
 <title>InfinityLive</title>
-
-
+<link rel="stylesheet" href="/css/infinity.css">
 <style>
-
-
-*{
-
-    box-sizing:border-box;
-
-}
-
-
-
-body{
-
-
-    margin:0;
-
-
-    min-height:100vh;
-
-
-    background:
-
-    radial-gradient(
-
-        circle at top,
-
-        #bb07d3,
-
-        #120012 70%
-
-    );
-
-
-    color:white;
-
-
-    font-family:
-
-    Arial,
-
-    sans-serif;
-
-
-
-    display:flex;
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-
-    padding:20px;
-
-
-
-}
-
-
-
-
-
-
-body::before{
-
-
-    content:"";
-
-
-    position:fixed;
-
-
-    inset:0;
-
-
-
-    background:
-
-    radial-gradient(
-
-        circle,
-
-        rgba(255,255,255,.12),
-
-        transparent 50%
-
-    );
-
-
-
-    pointer-events:none;
-
-
-
-}
-
-
-
-
-
-
-.container{
-
-
-    width:100%;
-
-
-    max-width:430px;
-
-
-    text-align:center;
-
-
-
-}
-
-
-
-
-
-
-.logo{
-
-
-    width:220px;
-
-
-    max-width:80%;
-
-
-    margin-bottom:15px;
-
-
-
-    filter:
-
-
-    drop-shadow(
-
-        0 0 20px rgba(255,255,255,.5)
-
-    );
-
-
-}
-
-
-
-
-
-
-.card{
-
-
-    background:
-
-    rgba(0,0,0,.75);
-
-
-
-    backdrop-filter:
-
-    blur(15px);
-
-
-
-    border-radius:30px;
-
-
-
-    padding:30px;
-
-
-
-    border:
-
-    1px solid rgba(255,255,255,.15);
-
-
-
-    box-shadow:
-
-
-    0 20px 50px rgba(0,0,0,.5);
-
-
-
-}
-
-
-
-
-
-
-
-h1{
-
-
-    margin-top:0;
-
-
-    font-size:32px;
-
-
-    letter-spacing:1px;
-
-
-
-}
-
-
-
-
-
-
-
-p{
-
-
-    opacity:.8;
-
-
-    font-size:18px;
-
-
-
-}
-
-
-
-
-
-
-input{
-
-
-    width:100%;
-
-
-    padding:16px;
-
-
-    border-radius:15px;
-
-
-    border:none;
-
-
-
-    font-size:18px;
-
-
-
-    margin-top:20px;
-
-
-
-    outline:none;
-
-
-
-}
-
-
-
-
-
-
-input:focus{
-
-
-    box-shadow:
-
-    0 0 15px #bb07d3;
-
-
-
-}
-
-
-
-
-
-
-button{
-
-
-    width:100%;
-
-
-    margin-top:20px;
-
-
-
-    padding:17px;
-
-
-
-    border-radius:15px;
-
-
-
-    border:none;
-
-
-
-    font-size:21px;
-
-
-
-    font-weight:bold;
-
-
-
-    cursor:pointer;
-
-
-
-    background:
-
-
-    linear-gradient(
-
-        135deg,
-
-        white,
-
-        #ddd
-
-    );
-
-
-
-    color:#111;
-
-
-
-    transition:.3s;
-
-
-
-}
-
-
-
-
-
-
-button:hover{
-
-
-    transform:scale(1.03);
-
-
-
-    box-shadow:
-
-    0 0 25px rgba(255,255,255,.5);
-
-
-
-}
-
-#leave{
-
-
-    display:none;
-
-
-    background:
-
-    linear-gradient(
-
-        135deg,
-
-        #ff4b4b,
-
-        #990000
-
-    );
-
-
-    color:white;
-
-
-}
-
-
-
-
-#status{
-
-
-    margin-top:25px;
-
-
-
-    font-size:20px;
-
-
-    font-weight:bold;
-
-
-
-}
+body{ display:flex; justify-content:center; align-items:center; padding:22px; }
+.container{ width:100%; max-width:440px; text-align:center; }
+.logo{ width:230px; max-width:72%; margin-bottom:8px; animation:float 5s ease-in-out infinite; }
+.card{ padding:30px 28px 28px; }
+h1{ margin:4px 0 8px; font-size:32px; font-weight:800; letter-spacing:-.01em; }
+#welcomeText{ margin:0 0 22px; color:var(--muted); font-size:17px; line-height:1.45; }
+#name{ text-align:center; }
+.btn{ width:100%; margin-top:14px; padding:17px; font-size:19px; }
+#leave{ display:none; }
+#status{ margin-top:22px; font-size:19px; font-weight:700; line-height:1.4; }
+#status.error{ color:#ff9aa8; }
 #position{
-
-
-    margin-top:15px;
-
-
-    font-size:24px;
-
-
-    font-weight:bold;
-
-
-
-    color:#ffffff;
-
-
-
-    text-shadow:
-
-
-    0 0 10px #bb07d3;
-
-
-
+    display:inline-block;
+    margin-top:16px;
+    padding:10px 20px;
+    border-radius:40px;
+    border:1px solid rgba(155,123,240,.45);
+    background:rgba(155,123,240,.12);
+    font-size:20px;
+    font-weight:800;
 }
-
-
-
-
-
-
-
-video{
-
-
-    width:100%;
-
-
-    margin-top:30px;
-
-
-    border-radius:25px;
-
-
-
-    background:black;
-
-
-
+#position:empty{ display:none; }
+#hint{ margin-top:12px; font-size:14px; color:var(--muted); }
+.preview{
     display:none;
-
-
-
-    box-shadow:
-
-
-    0 0 30px rgba(187,7,211,.6);
-
-
-
+    margin-top:24px;
+    position:relative;
+    padding:3px;
+    border-radius:26px;
+    background:var(--grad);
+    box-shadow:0 0 40px rgba(155,123,240,.35);
 }
-
-
-
-
-
-
-
-@media(max-width:600px){
-
-
-    .card{
-
-
-        padding:22px;
-
-
-    }
-
-
-
-    h1{
-
-
-        font-size:26px;
-
-
-    }
-
-
-
-    .logo{
-
-
-        width:200px;
-
-
-    }
-
-
-
+video{
+    display:block;
+    width:100%;
+    max-height:52vh;
+    object-fit:cover;
+    border-radius:23px;
+    background:#000;
+    transform:scaleX(-1);
 }
-
-
-
+.live-badge{
+    display:none;
+    position:absolute;
+    top:16px;
+    left:16px;
+    padding:6px 13px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.5px;
+    background:#e5173f;
+    animation:pulse 1.2s infinite;
+}
+.bar{ display:none; height:8px; margin-top:16px; border-radius:8px; background:rgba(255,255,255,.12); overflow:hidden; }
+.bar div{ height:100%; width:100%; background:var(--grad-h); transform-origin:left; }
+.turn #status{ font-size:23px; }
+@media(max-width:600px){ .card{ padding:24px 20px 22px; } h1{ font-size:28px; } }
 </style>
-
-
 </head>
-
-
 <body>
 
-
-
-
-
 <div class="container">
+<div class="card" id="card">
 
+<img class="logo" src="/images/logo.png?v=4" alt="InfinityLive">
 
+<h1 id="welcomeTitle">Bienvenue</h1>
+<p id="welcomeText">Entrez votre prénom pour passer sur nos écrans</p>
 
-
-
-<div class="card">
-
-
-
-<img
-
-class="logo"
-
-src="/images/logo.png"
-
-alt="InfinityLive">
-
-
-
-
-
-
-<h1 id="welcomeTitle">
-
-Bienvenue
-
-</h1>
-
-
-
-
-
-
-
-<p id="welcomeText">
-
-Entrez votre prénom pour participer
-
-</p>
-
-
-
-
-
-
-
-<input
-
-id="name"
-
-placeholder="Votre prénom">
-
-
-
-
-
-
-
-<button id="join">
-
-Participer
-
-</button>
-
-<button id="leave">
-
-Quitter la file
-
-</button>
-
-
-
-
+<input class="input" id="name" placeholder="Votre prénom" maxlength="24" autocomplete="given-name">
+<button class="btn btn-primary" id="join">Participer</button>
+<button class="btn btn-danger" id="leave">Quitter la file</button>
 
 <div id="status"></div>
-
-
-
 <div id="position"></div>
+<div id="hint"></div>
 
-
-
-
-
-
-
-<video
-
-id="camera"
-
-autoplay
-
-playsinline>
-
-</video>
-
-
-
-
+<div class="preview" id="preview">
+    <video id="camera" autoplay playsinline muted></video>
+    <div class="live-badge" id="liveBadge">● À L'ÉCRAN</div>
+</div>
+<div class="bar" id="bar"><div id="barFill"></div></div>
 
 </div>
-
-
-
-
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
-
-
-
 <script>
-    const socket = io();
+const $ = id => document.getElementById(id);
+const socket = io({ reconnectionDelayMax: 3000 });
 
-
-
-const button =
-document.getElementById("join");
-
-const leaveButton =
-document.getElementById("leave");
-
-const nameInput =
-document.getElementById("name");
-
-
-const status =
-document.getElementById("status");
-
-
-const position =
-document.getElementById("position");
-
-
-const video =
-document.getElementById("camera");
-
-
-
-let joined = false;
-
-
-let cameraStream = null;
-
-
-let peerConnection = null;
-
-
-
-
-
-const rtcConfiguration = {
-
-    iceServers:[
-
-        {
-            urls:
-            "stun:stun.l.google.com:19302"
-        }
-
-    ]
-
+const els = {
+    card:$("card"), join:$("join"), leave:$("leave"), name:$("name"),
+    status:$("status"), position:$("position"), hint:$("hint"),
+    video:$("camera"), preview:$("preview"), badge:$("liveBadge"),
+    bar:$("bar"), fill:$("barFill"),
+    title:$("welcomeTitle"), text:$("welcomeText")
 };
 
-
-peerConnection = new RTCPeerConnection(rtcConfiguration);
-
-
-
-
-
-// ----------------------
-// POSITION FILE
-// ----------------------
-
-
-socket.on(
-"queuePosition",
-(pos)=>{
-
-
-    if(joined){
-
-
-        position.innerText =
-        "Position dans la file : " + pos;
-
-
-    }
-
-
-});
-
-
-
-
-
-
-
-
-
-// ----------------------
-// TON TOUR
-// ----------------------
-
-
-socket.on(
-"visitorCalled",
-async()=>{
-
-
-    console.log(
-        "🎥 Début envoi caméra"
-    );
-
-
-    status.innerText =
-    "🎉 C'est votre tour !";
-
-
-
-    position.innerText = "";
-
-
-
-    if(!cameraStream){
-
-
-        console.log(
-            "Aucun flux caméra"
-        );
-
-
-        return;
-
-
-    }
-
-
-
-
-
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
-        peerConnection = null;
-
-
-    }
-
-
-
-    peerConnection = new RTCPeerConnection({
-    iceServers: [
-        {
-            urls: "stun:stun.l.google.com:19302"
-        }
-    ]
-});
-
-
-
-
-
-
-
-    cameraStream
-.getTracks()
-.forEach(track=>{
-
-    const sender = peerConnection.addTrack(
-        track,
-        cameraStream
-    );
-
-    if(track.kind === "video"){
-
-        const params = sender.getParameters();
-
-        if(!params.encodings){
-            params.encodings = [{}];
-        }
-
-        params.encodings[0].maxBitrate = 1500000;
-
-        sender.setParameters(params);
-
-    }
-
-});
-
-
-
-
-
-
-    peerConnection.onicecandidate =
-    (event)=>{
-
-
-        if(event.candidate){
-
-
-            socket.emit(
-                "iceCandidate",
-                event.candidate
-            );
-
-
-        }
-
-
-    };
-
-
-
-
-
-
-    const offer =
-    await peerConnection.createOffer();
-
-
-
-
-
-    await peerConnection.setLocalDescription(
-        offer
-    );
-
-
-
-
-
-
-    socket.emit(
-        "offer",
-        offer
-    );
-
-
-
-    console.log(
-        "📤 OFFER envoyée au serveur"
-    );
-
-
-
-});
-
-
-
-
-
-
-
-
-
-
-
-// ----------------------
-// RECEPTION ANSWER
-// ----------------------
-
-
-socket.on(
-"answer",
-async(answer)=>{
-
-
-    if(peerConnection){
-
-
-        await peerConnection.setRemoteDescription(
-            answer
-        );
-
-
-        console.log(
-            "📥 ANSWER reçue"
-        );
-
-
-    }
-
-
-});
-
-
-
-
-
-
-
-
-
-
-
-// ----------------------
-// RECEPTION ICE
-// ----------------------
-
-
-socket.on(
-"iceCandidate",
-async(candidate)=>{
-
-
-    if(peerConnection){
-
-
-        try{
-
-
-            await peerConnection.addIceCandidate(
-                candidate
-            );
-
-
-            console.log(
-                "🧊 ICE ajouté"
-            );
-
-
-        }
-        catch(error){
-
-
-            console.error(
-                "Erreur ICE :",
-                error
-            );
-
-
-        }
-
-
-    }
-
-
-});
-
-// ----------------------
-// FIN DU PASSAGE
-// ----------------------
-
-socket.on(
-"visitorFinished",
-()=>{
-
-
-    console.log(
-        "✅ Passage terminé"
-    );
-
-
-    window.location.href =
-    "/merci";
-
-
-});
-
-
-
-
-
-
-
-
-
-
-// ----------------------
-// BOUTON PARTICIPER
-// ----------------------
-
-
-button.onclick =
-async()=>{
-
-
-    const name =
-    nameInput.value.trim();
-
-
-
-
-
-
-    if(!name){
-
-
-        alert(
-            "Veuillez entrer votre prénom"
-        );
-
-
-        return;
-
-
-    }
-
-
-
-
-
-
-
-    try{
-
-
-
-        cameraStream =
-await navigator.mediaDevices.getUserMedia({
-
-    video:{
-
-        facingMode:"user",
-
-        width:{
-            ideal:1280
-        },
-
-        height:{
-            ideal:720
-        },
-
-        frameRate:{
-            ideal:30,
-            max:30
-        },
-
-        aspectRatio:{
-            ideal:16/9
-        }
-
-
-    },
-
-    audio:false
-
-});
-
-
-
-const videoTrack =
-cameraStream.getVideoTracks()[0];
-
-
-
-const capabilities =
-videoTrack.getCapabilities();
-
-
-
-if(capabilities.width){
-
-
-    await videoTrack.applyConstraints({
-
-        width:{
-            ideal:1920
-        },
-
-        height:{
-            ideal:1080
-        }
-
-    });
-
-
+let vid = sessionStorage.getItem("vid");
+if(!vid){
+    vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    sessionStorage.setItem("vid", vid);
 }
 
+let joined = sessionStorage.getItem("joined") === "1";
+let myName = sessionStorage.getItem("name") || "";
+let cameraStream = null;
+let pc = null;
+let sessionId = null;
+let pendingIce = [];
+let rtcConfig = { iceServers:[{ urls:"stun:stun.l.google.com:19302" }] };
+let wakeLock = null;
+let countdown = null;
 
-
-
-
-
-
-        console.log(
-            "📷 Caméra activée"
-        );
-
-
-
-
-
-
-
-        socket.emit(
-            "visitorReady"
-        );
-
-
-
-
-
-
-
-
-        socket.emit(
-            "joinQueue",
-            name
-        );
-
-
-
-
-
-
-
-        joined = true;
-
-
-
-
-
-
-        button.style.display =
-        "none";
-
-
-
-        nameInput.style.display =
-        "none";
-
-       leaveButton.style.display =
-       "block";
-
-document.getElementById("welcomeTitle").style.display = "none";
-
-document.getElementById("welcomeText").style.display = "none";
-
-
-
-        status.innerText =
-        "✅ Vous êtes dans la file d'attente";
-
-
-
-    }
-
-
-    catch(error){
-
-
-        console.error(
-            error
-        );
-
-
-        status.innerText =
-        "Autorisation caméra refusée";
-
-
-    }
-
-
-};
+// La config (serveurs STUN/TURN) vient du serveur
+fetch("/api/config").then(r => r.json()).then(c => {
+    if(c.iceServers && c.iceServers.length) rtcConfig = { iceServers:c.iceServers };
+}).catch(() => {});
 
 // ----------------------
-// QUITTER LA FILE
+// AFFICHAGE
 // ----------------------
 
-leaveButton.onclick =
-()=>{
+function setStatus(text, isError){
+    els.status.textContent = text || "";
+    els.status.classList.toggle("error", !!isError);
+}
 
-
-    socket.emit(
-        "leaveQueue"
-    );
-
-
-
-    if(cameraStream){
-
-
-        cameraStream
-        .getTracks()
-        .forEach(track=>{
-
-
-            track.stop();
-
-
-        });
-
-
-        cameraStream = null;
-
-
-    }
-
-
-
-    if(peerConnection){
-
-
-        peerConnection.close();
-
-
-        peerConnection = null;
-
-
-    }
-
-
-
+function showForm(message, isError){
     joined = false;
+    sessionStorage.removeItem("joined");
+    els.title.style.display = els.text.style.display = "";
+    els.name.style.display = els.join.style.display = "block";
+    els.join.disabled = false;
+    els.leave.style.display = "none";
+    els.preview.style.display = els.badge.style.display = els.bar.style.display = "none";
+    els.card.classList.remove("turn");
+    els.position.textContent = els.hint.textContent = "";
+    setStatus(message, isError);
+}
 
+function showQueue(){
+    els.title.style.display = els.text.style.display = "none";
+    els.name.style.display = els.join.style.display = "none";
+    els.leave.style.display = "block";
+    els.preview.style.display = cameraStream ? "block" : "none";
+    els.card.classList.remove("turn");
+    els.badge.style.display = els.bar.style.display = "none";
+    setStatus("✅ Vous êtes dans la file d'attente");
+    els.hint.textContent = "Gardez cette page ouverte, votre tour arrive !";
+}
 
+els.name.value = myName;
+if(joined) showQueue();
 
-    button.style.display =
-    "block";
+// ----------------------
+// CAMERA
+// ----------------------
 
+function cameraAlive(){
+    return cameraStream && cameraStream.getVideoTracks().some(t => t.readyState === "live");
+}
 
+async function getCamera(){
+    if(cameraAlive()) return cameraStream;
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+        video:{
+            facingMode:"user",
+            width:{ ideal:1280 },
+            height:{ ideal:720 },
+            frameRate:{ ideal:30, max:30 }
+        },
+        audio:false
+    });
+    els.video.srcObject = cameraStream;
+    els.video.play().catch(() => {});
+    els.preview.style.display = "block";
+    return cameraStream;
+}
 
-    nameInput.style.display =
-    "block";
+function stopCamera(){
+    if(cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+    els.video.srcObject = null;
+}
 
+// Garde l'écran du téléphone allumé pendant l'attente
+async function keepAwake(){
+    try{
+        if("wakeLock" in navigator && !wakeLock){
+            wakeLock = await navigator.wakeLock.request("screen");
+            wakeLock.addEventListener("release", () => { wakeLock = null; });
+        }
+    }catch(e){}
+}
+document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible" && joined){
+        keepAwake();
+        if(socket.disconnected) socket.connect();
+    }
+});
 
+// ----------------------
+// WEBRTC
+// ----------------------
 
-    nameInput.value =
-    "";
+function closePeer(){
+    if(pc){
+        pc.onicecandidate = pc.onconnectionstatechange = null;
+        try{ pc.close(); }catch(e){}
+        pc = null;
+    }
+    pendingIce = [];
+}
 
+async function flushIce(){
+    const list = pendingIce; pendingIce = [];
+    for(const c of list){
+        try{ await pc.addIceCandidate(c); }catch(e){ console.warn("ICE ignoré", e); }
+    }
+}
 
+async function startStreaming(id){
+    closePeer();
+    try{
+        await getCamera();
+    }catch(e){
+        setStatus("Caméra indisponible, autorisez-la puis rejoignez la file", true);
+        socket.emit("leaveQueue");
+        showForm("Caméra indisponible : autorisez-la puis rejoignez la file", true);
+        return;
+    }
 
-    leaveButton.style.display =
-    "none";
+    const peer = new RTCPeerConnection(rtcConfig);
+    pc = peer;
 
+    cameraStream.getTracks().forEach(t => peer.addTrack(t, cameraStream));
 
+    peer.onicecandidate = e => {
+        if(e.candidate) socket.emit("iceCandidate", { sessionId:id, candidate:e.candidate });
+    };
+    peer.onconnectionstatechange = () => {
+        console.log("WebRTC :", peer.connectionState);
+        if(peer.connectionState === "failed") setStatus("Connexion difficile, on réessaie…");
+    };
 
-    position.innerText =
-    "";
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    socket.emit("offer", { sessionId:id, offer:peer.localDescription });
 
+    // Limite le débit pour rester fluide sur la 4G d'une fête de village
+    try{
+        const sender = peer.getSenders().find(s => s.track && s.track.kind === "video");
+        const params = sender.getParameters();
+        if(!params.encodings || !params.encodings.length) params.encodings = [{}];
+        params.encodings[0].maxBitrate = 2000000;
+        await sender.setParameters(params);
+    }catch(e){}
+}
 
+socket.on("answer", async d => {
+    if(!pc || d.sessionId !== sessionId) return;
+    try{
+        await pc.setRemoteDescription(d.answer);
+        await flushIce();
+    }catch(e){ console.error("Answer", e); }
+});
 
-    status.innerText =
-    "Vous avez quitté la file";
+socket.on("iceCandidate", async d => {
+    if(d.sessionId !== sessionId || !pc) return;
+    if(!pc.remoteDescription){ pendingIce.push(d.candidate); return; }
+    try{ await pc.addIceCandidate(d.candidate); }catch(e){ console.warn("ICE ignoré", e); }
+});
 
+// ----------------------
+// EVENEMENTS SERVEUR
+// ----------------------
 
+socket.on("connect", async () => {
+    if(!joined) return;
+    try{ await getCamera(); }
+    catch(e){
+        socket.emit("leaveQueue");
+        showForm("La caméra a été coupée, rejoignez la file pour continuer", true);
+        return;
+    }
+    socket.emit("resume", { vid, name:myName }); // retrouve sa place après une coupure
+});
 
+socket.on("joined", () => { showQueue(); keepAwake(); });
+
+socket.on("resumeFailed", () => {
+    stopCamera();
+    showForm("Vous avez été retiré de la file (connexion perdue). Rejoignez-la !", true);
+});
+
+socket.on("queuePosition", pos => {
+    if(!joined || els.card.classList.contains("turn")) return;
+    els.position.textContent = pos === 1 ? "Vous êtes le prochain !" : "Position dans la file : " + pos;
+});
+
+socket.on("visitorCalled", d => {
+    if(!joined) return;
+    sessionId = d.sessionId;
+    els.card.classList.add("turn");
+    els.leave.style.display = "block";
+    els.position.textContent = els.hint.textContent = "";
+    els.preview.style.display = "block";
+    setStatus("🎉 C'est votre tour !");
+    // reconnexion pendant un passage déjà en cours : on ne relance rien
+    if(d.resumed && pc && ["connected","connecting"].includes(pc.connectionState)) return;
+    startStreaming(d.sessionId).catch(e => console.error("Streaming", e));
+});
+
+socket.on("sessionLive", d => {
+    els.badge.style.display = "block";
+    els.bar.style.display = "block";
+    setStatus("🔴 Vous êtes à l'écran, souriez !");
+    clearInterval(countdown);
+    const end = Date.now() + d.duration;
+    countdown = setInterval(() => {
+        const left = Math.max(0, end - Date.now());
+        els.fill.style.transform = "scaleX(" + (left / d.duration) + ")";
+        if(left <= 0) clearInterval(countdown);
+    }, 100);
+});
+
+function cleanup(){
+    clearInterval(countdown);
+    closePeer();
+    stopCamera();
+    sessionId = null;
+    sessionStorage.removeItem("joined");
+    sessionStorage.removeItem("name");
+    if(wakeLock){ wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
+socket.on("visitorFinished", () => {
+    cleanup();
+    window.location.href = "/merci";
+});
+
+socket.on("visitorRetry", () => {
+    clearInterval(countdown);
+    closePeer();
+    sessionId = null;
+    showQueue();
+    setStatus("Petit souci technique, on réessaie… vous gardez votre place");
+});
+
+socket.on("visitorFailed", () => {
+    cleanup();
+    showForm("Oups, la connexion n'a pas fonctionné. Rejoignez la file pour réessayer !", true);
+});
+
+socket.on("removed", () => {
+    cleanup();
+    showForm("Vous avez été retiré de la file par l'organisation.", true);
+});
+
+socket.on("queueFull", () => {
+    cleanup();
+    showForm("La file est pleine pour le moment, réessayez un peu plus tard.", true);
+});
+
+// ----------------------
+// BOUTONS
+// ----------------------
+
+els.join.onclick = async () => {
+    const name = els.name.value.trim();
+    if(!name){
+        setStatus("Veuillez entrer votre prénom", true);
+        els.name.focus();
+        return;
+    }
+    els.join.disabled = true;
+    setStatus("Autorisez la caméra pour continuer…");
+    try{
+        await getCamera();
+    }catch(e){
+        console.error(e);
+        els.join.disabled = false;
+        setStatus("Autorisation caméra refusée (vérifiez les réglages du navigateur)", true);
+        return;
+    }
+    setStatus("Inscription en cours…");
+    if(!socket.connected) socket.connect();
+    // le serveur confirme l'inscription : on n'affiche "dans la file" que s'il répond
+    myName = name;
+    joined = true; // pour recevoir la position dès la réponse du serveur
+    socket.timeout(8000).emit("joinQueue", { vid, name }, (err, res) => {
+        els.join.disabled = false;
+        if(err || !res || !res.ok){
+            stopCamera();
+            showForm(res && res.reason === "full"
+                ? "La file est pleine pour le moment, réessayez un peu plus tard."
+                : "Le serveur ne répond pas. Vérifiez votre connexion et réessayez.", true);
+            return;
+        }
+        sessionStorage.setItem("joined", "1");
+        sessionStorage.setItem("name", name);
+        showQueue();
+        keepAwake();
+    });
 };
 
+els.name.addEventListener("keydown", e => { if(e.key === "Enter") els.join.click(); });
 
+els.leave.onclick = () => {
+    socket.emit("leaveQueue");
+    cleanup();
+    showForm("Vous avez quitté la file");
+};
 </script>
-
-
 </body>
-
 </html>
-
